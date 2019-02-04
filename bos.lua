@@ -20,12 +20,14 @@ start_menu = {}
 start_menu_opend = false
 START_MENU_WIDTH = 13
 
-EVENT_PAINT = 1
-EVENT_FOCUS = 2
-EVENT_LOST_FOCUS = 3
-EVENT_KEY = 4
-EVENT_MOUSE_DOWN = 5
-EVENT_MOUSE_UP = 6
+EVENT_CREATE = 1
+EVENT_PAINT = 2
+EVENT_FOCUS = 3
+EVENT_LOST_FOCUS = 4
+EVENT_KEY = 5
+EVENT_MOUSE_DOWN = 6
+EVENT_MOUSE_UP = 7
+EVENT_MOUSE_DRAG = 8
 
 -- ###############################################
 
@@ -42,6 +44,7 @@ function CreateWindow(title, x, y, width, height, event_function)
     window["event_function"] = event_function
     windows[window["id"]] = window
     windows_order[#windows_order + 1] = window["id"]
+    window["event_function"](window, EVENT_CREATE)
     FocusWindow(window["id"])
     return window["id"]
 end
@@ -136,6 +139,37 @@ function OpenCalculator()
     CreateWindow("Calculator", 4, 4, 20, 10, CalculatorEventFunction)
 end
 
+function OpenPaint()
+    local data = {}
+    function PaintEventFunction(window, event, param1, param2, param3)
+        if event == EVENT_CREATE then
+            for i = 1, window["height"] * (window["width"] + 1) do
+                data[i] = 0
+            end
+        end
+        if event == EVENT_MOUSE_DOWN or event == EVENT_MOUSE_DRAG then
+            if param1 == 1 then
+                data[param3 * (window["width"] + 1) + param2] = 1
+            end
+            if param1 == 2 then
+                data[param3 * (window["width"] + 1) + param2] = 0
+            end
+        end
+        if event == EVENT_PAINT then
+            for y = 0, window["height"] do
+                for x = 0, window["width"] do
+                    if data[y * (window["width"] + 1) + x] == 1 then
+                        term.setCursorPos(window["x"] + x, window["y"] + y)
+                        term.setBackgroundColor(colors.black)
+                        term.write(" ")
+                    end
+                end
+            end
+        end
+    end
+    CreateWindow("Paint", 2, 2, term_width - 3, term_height - 4, PaintEventFunction)
+end
+
 function OpenTaskManager()
     function TaskManagerEventFunction(window, event)
         if event == EVENT_PAINT then
@@ -210,6 +244,7 @@ OpenAbout()
 
 start_menu = {
     "Calculator", OpenCalculator,
+    "Paint", OpenPaint,
     "Task Manager", OpenTaskManager,
     "About", OpenAbout,
     "Shutdown", os.shutdown
@@ -243,7 +278,7 @@ function HandleMouseDown(button, x, y)
                     drag_x = x - window["x"]
                 end
                 if x >= window["x"] and y >= window["y"] and
-                    x < window["x"] + window["width"] and y < window["y"] + window["height"] then
+                    x <= window["x"] + window["width"] and y <= window["y"] + window["height"] then
                     window["event_function"](window, EVENT_MOUSE_DOWN, button, x - window["x"], y - window["y"])
                 end
                 return
@@ -280,7 +315,7 @@ function HandleMouseUp(button, x, y)
                 return
             end
             if x >= window["x"] and y >= window["y"] and
-                x < window["x"] + window["width"] and y < window["y"] + window["height"] then
+                x <= window["x"] + window["width"] and y <= window["y"] + window["height"] then
                 window["event_function"](window, EVENT_MOUSE_UP, button, x - window["x"], y - window["y"])
                 return
             end
@@ -301,6 +336,24 @@ function HandleMouseUp(button, x, y)
                 return
             end
             offset = offset + 6
+        end
+    end
+end
+
+function HandleMouseDrag(button, x, y)
+    if drag_window_id ~= nil then
+        MoveWindow(drag_window_id, x - drag_x, y + 1)
+        return
+    end
+
+    for i = 1, #windows_order do
+        local window = windows[windows_order[i]]
+        if window["minimized"] == false then
+            if x >= window["x"] and y >= window["y"] and
+                x <= window["x"] + window["width"] and y <= window["y"] + window["height"] then
+                window["event_function"](window, EVENT_MOUSE_DRAG, button, x - window["x"], y - window["y"])
+                return
+            end
         end
     end
 end
@@ -419,9 +472,7 @@ while true do
     end
 
     if event == "mouse_drag" then
-        if drag_window_id ~= nil then
-            MoveWindow(drag_window_id, param2 - drag_x, param3 + 1)
-        end
+        HandleMouseDrag(param1, param2, param3)
     end
 
     if event == "key" and #windows_order > 0 and windows[windows_order[1]]["minimized"] == false then
