@@ -1,6 +1,6 @@
--- !!BassieOS_INFO!! { type = "BassieOS_APP", name = "Task Manager", version = 1 }
+-- !!BassieOS_INFO!! { type = "BassieOS_APP", name = "Tasks", version = 1 }
 
-function EventFunction(window_id, event)
+function EventFunction(window_id, event, param1, param2, param3)
     if event == EVENT_PAINT then
         local focused_window = GetFocusedWindow()
         DrawWindowText(window_id, "Focused window: " .. (focused_window ~= nil and ("#" .. focused_window) or "none"), 1, 1)
@@ -16,7 +16,7 @@ function EventFunction(window_id, event)
 end
 
 if BASSIEOS_VERSION ~= nil then
-    CreateWindow("Task Manager", 2, 2, 45, 12, EventFunction)
+    CreateWindow("Task Manager", math.floor((ScreenWidth() - 45) / 2), math.floor((ScreenHeight() - 14 - 1) / 2), 45, 14, EventFunction)
 else
     print("This program needs BassieOS to run")
 end

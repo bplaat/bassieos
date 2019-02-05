@@ -56,13 +56,35 @@ function _G.CheckBit(number, position)
    return bit.band(number, math.pow(2, position)) ~= 0
 end
 
+-- Function that cuts a string and adds dots to the end
+function _G.StringCut(text, width)
+    if string.len(text) > width then
+        return string.sub(text, 0, width - 2) .. ".."
+    end
+    return text
+end
+
 -- Function that opens a file and runs it as a function
 function _G.RunProgram(path)
-    local file = fs.open(path, "r")
-    local program = load(file.readAll(), path)
-    file.close()
-    if program ~= nil then
-        program()
+    if fs.exists(path) then
+        local file = fs.open(path, "r")
+        local program = load(file.readAll(), path)
+        file.close()
+        if program ~= nil then
+            program()
+        end
+    end
+end
+
+-- Function that parses the first line of a program which contains program info
+function _G.GetProgramInfo(path)
+    if fs.exists(path) then
+        local file = fs.open(path, "r")
+        local line = file.readLine()
+        file.close()
+        if string.sub(line, 0, string.len(BASSIEOS_INFO_MAGIC)) == BASSIEOS_INFO_MAGIC then
+            return textutils.unserialize(string.sub(line, string.len(BASSIEOS_INFO_MAGIC)))
+        end
     end
 end
 
@@ -366,7 +388,7 @@ function _G.DrawWindowText(window_id, text, x, y)
 end
 
 -- Function that closes the system
-function _G.ShutDown()
+function _G.Shutdown()
     -- Close all the windows
     while #windows_order ~= 0 do
         CloseWindow(windows_order[1])
@@ -382,14 +404,8 @@ end
 local text_color = term.getTextColor()
 local background_color = term.getBackgroundColor()
 
--- Run the programs
+-- Start the BassieOS bar
 RunProgram("bar.lua")
-RunProgram("task.lua")
-RunProgram("paint.lua")
-RunProgram("about.lua")
-RunProgram("task.lua")
-RunProgram("paint.lua")
-RunProgram("about.lua")
 
 -- Send a timer event to start the paint loop
 os.startTimer(1 / 20)
@@ -424,7 +440,7 @@ while do_event_loop do
                     -- Draw the window header decorations
                     term.setTextColor(colors.white)
                     term.setBackgroundColor(window_id == windows_focus and colors.black or colors.gray)
-                    DrawText(string.sub(GetWindowTitle(window_id), 0, GetWindowWidth(window_id) - (CheckBit(GetWindowStyle(window_id), 3) and 4 or 3)), GetWindowX(window_id), GetWindowY(window_id) - 1)
+                    DrawText(StringCut(GetWindowTitle(window_id), GetWindowWidth(window_id) - (CheckBit(GetWindowStyle(window_id), 3) and 4 or 3)), GetWindowX(window_id), GetWindowY(window_id) - 1)
 
                     -- Check window is resizable
                     if CheckBit(GetWindowStyle(window_id), 3) then
