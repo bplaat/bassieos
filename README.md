@@ -2,7 +2,7 @@
 A simple Operating System for the MineCraft ComputerCraft advanced color computer
 
 ## How to install?
-Just copy the contents of `bos.lua` to an editor in CraftOS on your advanced color computer
+Just copy all the files to an editor in CraftOS on your advanced color computer
 
 ## Some screenshots
 ![Screenshot 1](bassieos-screenshot1.png)
