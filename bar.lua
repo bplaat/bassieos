@@ -3,7 +3,9 @@
 local menu
 local menu_window_id
 local menu_width
-local shutdown = "Shutdown"
+local SHUTDOWN = "Shutdown"
+
+local LIST_WIDTH = 10
 
 function MenuEventFunction(window_id, event, param1, param2, param3)
     if event == EVENT_CREATE then
@@ -25,8 +27,8 @@ function MenuEventFunction(window_id, event, param1, param2, param3)
                 menu_width = string.len(menu[i])
             end
         end
-        if string.len(shutdown) > menu_width then
-            menu_width = string.len(shutdown)
+        if string.len(SHUTDOWN) > menu_width then
+            menu_width = string.len(SHUTDOWN)
         end
     end
     if event == EVENT_MOUSE_UP then
@@ -57,7 +59,7 @@ function MenuEventFunction(window_id, event, param1, param2, param3)
         for i = 1, #menu, 2 do
             DrawWindowText(window_id, menu[i] .. string.rep(" ", menu_width - string.len(menu[i])), 0, GetWindowHeight(window_id) - (#menu / 2) - 2 + math.floor(i / 2))
         end
-        DrawWindowText(window_id, shutdown .. string.rep(" ", menu_width - string.len(shutdown)), 0, GetWindowHeight(window_id) - 2)
+        DrawWindowText(window_id, SHUTDOWN .. string.rep(" ", menu_width - string.len(SHUTDOWN)), 0, GetWindowHeight(window_id) - 2)
     end
 end
 
@@ -72,20 +74,20 @@ function EventFunction(window_id, event, param1, param2, param3)
         end
 
         local windows = GetWindows()
-        local offset = 1
+        local offset = 6
         for i = 1, #windows do
-            if windows[i] ~= 0 and CheckBit(GetWindowStyle(i), 4) then
-                if x >= 6 * offset and x < 6 * offset + 5 then
-                    if i == GetFocusedWindow() then
-                        MinimizeWindow(i)
-                    elseif IsWindowMinimized(i) then
-                        ShowWindow(i)
+            if CheckBit(GetWindowStyle(windows[i]), 4) then
+                if x >= offset and x < offset + LIST_WIDTH then
+                    if windows[i] == GetFocusedWindow() then
+                        MinimizeWindow(windows[i])
+                    elseif IsWindowMinimized(windows[i]) then
+                        ShowWindow(windows[i])
                     else
-                        FocusWindow(i)
+                        FocusWindow(windows[i])
                     end
                     return
                 end
-                offset = offset + 1
+                offset = offset + LIST_WIDTH + 1
             end
         end
 
@@ -124,12 +126,12 @@ function EventFunction(window_id, event, param1, param2, param3)
         DrawWindowText(window_id, "Start", 0, 0)
 
         local windows = GetWindows()
-        local offset = 1
+        local offset = 6
         for i = 1, #windows do
-            if windows[i] ~= 0 and CheckBit(GetWindowStyle(i), 4) then
-                term.setBackgroundColor(i == GetFocusedWindow() and colors.gray or colors.black)
-                DrawWindowText(window_id, StringCut(GetWindowTitle(i), 5), 6 * offset, 0)
-                offset = offset + 1
+            if CheckBit(GetWindowStyle(windows[i]), 4) then
+                term.setBackgroundColor(windows[i] == GetFocusedWindow() and colors.gray or colors.black)
+                DrawWindowText(window_id, StringCut(GetWindowTitle(windows[i]), LIST_WIDTH), offset, 0)
+                offset = offset + LIST_WIDTH + 1
             end
         end
 

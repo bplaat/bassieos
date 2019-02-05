@@ -42,6 +42,7 @@ _G.EVENT_KEY = 8
 _G.EVENT_MOUSE_DOWN = 9
 _G.EVENT_MOUSE_UP = 10
 _G.EVENT_MOUSE_DRAG = 11
+_G.EVENT_MENU = 12
 
 -- The global window style constants (must be power of two)
 _G.WINDOW_STYLE_VISIBLE = 1
@@ -61,7 +62,7 @@ function _G.StringCut(text, width)
     if string.len(text) > width then
         return string.sub(text, 0, width - 2) .. ".."
     end
-    return text
+    return text .. string.rep(" ", width - string.len(text))
 end
 
 -- Function that opens a file and runs it as a function
@@ -101,12 +102,18 @@ function _G.ScreenHeight()
     return screen_height
 end
 
--- Function that returns the windows
+-- Function that returns the windows by window_id
 function _G.GetWindows()
-    return windows
+    local windows_ids = {}
+    for i = 1, #windows do
+        if windows[i] ~= 0 then
+            table.insert(windows_ids, i)
+        end
+    end
+    return windows_ids
 end
 
--- Function that returns the windows order
+-- Function that returns the windows order by window_id
 function _G.GetWindowsOrder()
     return windows_order
 end
@@ -385,6 +392,32 @@ end
 -- Function to draw text in a window
 function _G.DrawWindowText(window_id, text, x, y)
     DrawText(text, GetWindowX(window_id) + x, GetWindowY(window_id) + y)
+end
+
+-- Function that checks a menu click
+function _G.CheckWindowMenuClick(window_id, menu, x, y)
+    local offset = 0
+    for i = 1, #menu do
+        if x >= offset and x < offset + string.len(menu[i]) and y == 0 then
+            SendWindowEvent(window_id, EVENT_MENU, i)
+            return
+        end
+        offset = offset + string.len(menu[i]) + 1
+    end
+end
+
+-- Function that draws a menu
+function _G.DrawWindowMenu(window_id, menu)
+    term.setTextColor(colors.white)
+    term.setBackgroundColor(window_id == GetFocusedWindow() and colors.gray or colors.lightGray)
+    DrawWindowText(window_id, string.rep(" ", GetWindowWidth(window_id)), 0, 0)
+    local offset = 0
+    for i = 1, #menu do
+        DrawWindowText(window_id, menu[i], offset, 0)
+        offset = offset + string.len(menu[i]) + 1
+    end
+    term.setTextColor(colors.black)
+    term.setBackgroundColor(colors.white)
 end
 
 -- Function that closes the system

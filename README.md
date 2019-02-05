@@ -9,5 +9,7 @@ Just copy all the files to an editor in CraftOS on your advanced color computer
 
 ![Screenshot 2](bassieos-screenshot2.png)
 
+![Screenshot 3](bassieos-screenshot3.png)
+
 ## More information
 For more information go to: http://www.computercraft.info/wiki/Main_Page
