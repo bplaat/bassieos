@@ -28,7 +28,7 @@ drag_x = 0
 
 -- The global constants
 _G.BASSIEOS_VERSION = 1
-_G.BASSIEOS_INFO_MAGIC = "-- !!BassieOS_INFO!! "
+_G.BASSIEOS_INFO_MAGIC = '-- !!BassieOS_INFO!! '
 
 -- The global event constants
 _G.EVENT_CREATE = 1
@@ -57,19 +57,28 @@ function _G.CheckBit(number, position)
    return bit.band(number, math.pow(2, position)) ~= 0
 end
 
+-- Function that splits a string to a table
+function _G.SplitString(str, seperator)
+    local result = {}
+    for each in (str .. seperator):gmatch('(.-)' .. seperator) do
+        result[#result + 1] = each
+    end
+    return result
+end
+
 -- Function that cuts a string and adds dots to the end
 function _G.StringCut(text, width)
     if string.len(text) > width then
-        return string.sub(text, 0, width - 2) .. ".."
+        return string.sub(text, 0, width - 2) .. '..'
     end
-    return text .. string.rep(" ", width - string.len(text))
+    return text .. string.rep(' ', width - string.len(text))
 end
 
 -- Function that opens a file and runs it as a function
 function _G.RunProgram(path, args)
     if fs.exists(path) then
-        local file = fs.open(path, "r")
-        local program = load((args ~= nil and "local args = " .. textutils.serialize(args) .. "\n" or "") .. file.readAll(), path)
+        local file = fs.open(path, 'r')
+        local program = load((args ~= nil and 'local args = textutils.unserialize([[' .. textutils.serialize(args) .. ']])\n' or '') .. file.readAll(), path)
         file.close()
         if program ~= nil then
             program()
@@ -80,7 +89,7 @@ end
 -- Function that parses the first line of a program which contains program info
 function _G.GetProgramInfo(path)
     if fs.exists(path) then
-        local file = fs.open(path, "r")
+        local file = fs.open(path, 'r')
         local line = file.readLine()
         file.close()
         if string.sub(line, 0, string.len(BASSIEOS_INFO_MAGIC)) == BASSIEOS_INFO_MAGIC then
@@ -127,115 +136,115 @@ end
 function _G.CreateWindow(title, x, y, width, height, event_function, style)
     -- Creates a window object, fills it with function params and adds it to the windows array
     local window = {}
-    window["id"] = windows_id
+    window.id = windows_id
     windows_id = windows_id + 1
-    window["title"] = title
-    window["x"] = x
-    window["y"] = y
-    window["width"] = width
-    window["height"] = height
-    window["event_function"] = event_function
-    window["style"] = style or WINDOW_STYLE_LISTED + WINDOW_STYLE_RESIZABLE + WINDOW_STYLE_FOCUSABLE + WINDOW_STYLE_DECORATED + WINDOW_STYLE_VISIBLE
-    window["minimized"] = false
-    window["maximized"] = false
-    windows[window["id"]] = window
+    window.title = title
+    window.x = x
+    window.y = y
+    window.width = width
+    window.height = height
+    window.event_function = event_function
+    window.style = style or WINDOW_STYLE_LISTED + WINDOW_STYLE_RESIZABLE + WINDOW_STYLE_FOCUSABLE + WINDOW_STYLE_DECORATED + WINDOW_STYLE_VISIBLE
+    window.minimized = false
+    window.maximized = false
+    windows[window.id] = window
 
     -- Send a EVENT_CREATE event to the new window
-    SendWindowEvent(window["id"], EVENT_CREATE)
+    SendWindowEvent(window.id, EVENT_CREATE)
 
     -- Add window to window order and focus the window
-    windows_order[#windows_order + 1] = window["id"]
-    FocusWindow(window["id"])
+    windows_order[#windows_order + 1] = window.id
+    FocusWindow(window.id)
 
-    return window["id"]
+    return window.id
 end
 
 -- Function that returns the window title by a window_id
 function _G.GetWindowTitle(window_id)
-    return windows[window_id]["title"]
+    return windows[window_id].title
 end
 
 -- Function that sets the window title by a window_id
 function _G.SetWindowTitle(window_id, title)
-    windows[window_id]["title"] = title
+    windows[window_id].title = title
 end
 
 -- Function that returns the window x by a window_id
 function _G.GetWindowX(window_id)
-    return windows[window_id]["maximized"] and 0 or windows[window_id]["x"]
+    return windows[window_id].maximized and 0 or windows[window_id].x
 end
 
 -- Function that sets the window x by a window_id
 function _G.SetWindowX(window_id, x)
-    if windows[window_id]["x"] ~= x then
-        windows[window_id]["x"] = x
+    if windows[window_id].x ~= x then
+        windows[window_id].x = x
         SendWindowEvent(window_id, EVENT_MOVE)
     end
 end
 
 -- Function that returns the window y by a window_id
 function _G.GetWindowY(window_id)
-    return windows[window_id]["maximized"] and 1 or windows[window_id]["y"]
+    return windows[window_id].maximized and 1 or windows[window_id].y
 end
 
 -- Function that sets the window y by a window_id
 function _G.SetWindowY(window_id, y)
-    if windows[window_id]["y"] ~= y then
-        windows[window_id]["y"] = y
+    if windows[window_id].y ~= y then
+        windows[window_id].y = y
         SendWindowEvent(window_id, EVENT_MOVE)
     end
 end
 
 -- Function that returns the window width by a window_id
 function _G.GetWindowWidth(window_id)
-    return windows[window_id]["maximized"] and ScreenWidth() or windows[window_id]["width"]
+    return windows[window_id].maximized and ScreenWidth() or windows[window_id].width
 end
 
 -- Function that sets the window width by a window_id
 function _G.SetWindowWidth(window_id, width)
-    if windows[window_id]["width"] ~= width then
-        windows[window_id]["width"] = width
+    if windows[window_id].width ~= width then
+        windows[window_id].width = width
         SendWindowEvent(window_id, EVENT_RESIZE)
     end
 end
 
 -- Function that returns the window height by a window_id
 function _G.GetWindowHeight(window_id)
-    return windows[window_id]["maximized"] and ScreenHeight() - 2 or windows[window_id]["height"]
+    return windows[window_id].maximized and ScreenHeight() - 2 or windows[window_id].height
 end
 
 -- Function that sets the window height by a window_id
 function _G.SetWindowHeight(window_id, height)
-    if windows[window_id]["height"] ~= height then
-        windows[window_id]["height"] = height
+    if windows[window_id].height ~= height then
+        windows[window_id].height = height
         SendWindowEvent(window_id, EVENT_RESIZE)
     end
 end
 
 -- Function that returns the window style by a window_id
 function _G.GetWindowStyle(window_id)
-    return windows[window_id]["style"]
+    return windows[window_id].style
 end
 
 -- Function that sets the window style by a window_id and refocus the window
 function _G.SetWindowStyle(window_id, style)
-    windows[window_id]["style"] = style
+    windows[window_id].style = style
     FocusWindow(window_id)
 end
 
 -- Function that returns if the window is minimized
 function _G.IsWindowMinimized(window_id)
-    return windows[window_id]["minimized"]
+    return windows[window_id].minimized
 end
 
 -- Function that returns if the window is maximized
 function _G.IsWindowMaximized(window_id)
-    return windows[window_id]["maximized"]
+    return windows[window_id].maximized
 end
 
 -- Function that sends an event to a window
 function _G.SendWindowEvent(window_id, event, param1, param2, param3)
-    windows[window_id]["event_function"](window_id, event, param1, param2, param3)
+    windows[window_id].event_function(window_id, event, param1, param2, param3)
 end
 
 -- Function that checks of windows_focus is still the right window and sends some events
@@ -325,7 +334,7 @@ end
 -- Function that minimize a window by window_id
 function _G.MinimizeWindow(window_id)
     -- Set the minimized param on the window to true
-    windows[window_id]["minimized"] = true
+    windows[window_id].minimized = true
 
     -- Copy the windows_order array to a new one
     local new_windows_order = {}
@@ -344,20 +353,20 @@ end
 
 -- Function that shows a window after minimize by window_id
 function _G.ShowWindow(window_id)
-    windows[window_id]["minimized"] = false
+    windows[window_id].minimized = false
     FocusWindow(window_id)
 end
 
 -- Function that maximize a window by window_id
 function _G.MaximizeWindow(window_id)
-    windows[window_id]["maximized"] = true
+    windows[window_id].maximized = true
     SendWindowEvent(window_id, EVENT_RESIZE)
     FocusWindow(window_id)
 end
 
 -- Function that normals a window after maximize by window_id
 function _G.NormalWindow(window_id)
-    windows[window_id]["maximized"] = false
+    windows[window_id].maximized = false
     SendWindowEvent(window_id, EVENT_RESIZE)
     FocusWindow(window_id)
 end
@@ -394,6 +403,14 @@ function _G.DrawWindowText(window_id, text, x, y)
     DrawText(text, GetWindowX(window_id) + x, GetWindowY(window_id) + y)
 end
 
+-- Function to draw lines in a window
+function _G.DrawWindowLines(window_id, data, x, y)
+    data = SplitString(data, '\n')
+    for i = 1, #data do
+        DrawText(data[i], GetWindowX(window_id) + x, GetWindowY(window_id) + y + (i - 1))
+    end
+end
+
 -- Function that checks a menu click
 function _G.CheckWindowMenuClick(window_id, menu, x, y)
     local offset = 0
@@ -410,7 +427,7 @@ end
 function _G.DrawWindowMenu(window_id, menu)
     term.setTextColor(colors.white)
     term.setBackgroundColor(window_id == GetFocusedWindow() and colors.gray or colors.lightGray)
-    DrawWindowText(window_id, string.rep(" ", GetWindowWidth(window_id)), 0, 0)
+    DrawWindowText(window_id, string.rep(' ', GetWindowWidth(window_id)), 0, 0)
     local offset = 0
     for i = 1, #menu do
         DrawWindowText(window_id, menu[i], offset, 0)
@@ -438,7 +455,7 @@ local text_color = term.getTextColor()
 local background_color = term.getBackgroundColor()
 
 -- Start the BassieOS bar
-RunProgram("bar.lua")
+RunProgram('bar.lua')
 
 -- Send a timer event to start the paint loop
 os.startTimer(1 / 20)
@@ -448,7 +465,7 @@ while do_event_loop do
     local event, param1, param2, param3 = os.pullEvent()
 
     -- Paint the screen event
-    if event == "timer" then
+    if event == 'timer' then
         -- Clear the screen with a background color
         term.setBackgroundColor(colors.cyan)
         term.clear()
@@ -463,11 +480,11 @@ while do_event_loop do
                     -- Draw the window boxes
                     term.setBackgroundColor(window_id == windows_focus and colors.black or colors.gray)
                     for y = 0, GetWindowHeight(window_id) + 1 do
-                        DrawText(string.rep(" ", GetWindowWidth(window_id) + 2), GetWindowX(window_id) - 1, GetWindowY(window_id) - 1 + y)
+                        DrawText(string.rep(' ', GetWindowWidth(window_id) + 2), GetWindowX(window_id) - 1, GetWindowY(window_id) - 1 + y)
                     end
                     term.setBackgroundColor(colors.white)
                     for y = 0, GetWindowHeight(window_id) - 1 do
-                        DrawText(string.rep(" ", GetWindowWidth(window_id)), GetWindowX(window_id), GetWindowY(window_id) + y)
+                        DrawText(string.rep(' ', GetWindowWidth(window_id)), GetWindowX(window_id), GetWindowY(window_id) + y)
                     end
 
                     -- Draw the window header decorations
@@ -478,16 +495,16 @@ while do_event_loop do
                     -- Check window is resizable
                     if CheckBit(GetWindowStyle(window_id), 3) then
                         term.setBackgroundColor(colors.orange)
-                        DrawText("_", GetWindowX(window_id) + GetWindowWidth(window_id) - 3, GetWindowY(window_id) - 1)
+                        DrawText('_', GetWindowX(window_id) + GetWindowWidth(window_id) - 3, GetWindowY(window_id) - 1)
                         term.setBackgroundColor(colors.green)
-                        DrawText(IsWindowMaximized(window_id) and "o" or "O", GetWindowX(window_id) + GetWindowWidth(window_id) - 2, GetWindowY(window_id) - 1)
+                        DrawText(IsWindowMaximized(window_id) and 'o' or 'O', GetWindowX(window_id) + GetWindowWidth(window_id) - 2, GetWindowY(window_id) - 1)
                     else
                         term.setBackgroundColor(colors.orange)
-                        DrawText("_", GetWindowX(window_id) + GetWindowWidth(window_id) - 2, GetWindowY(window_id) - 1)
+                        DrawText('_', GetWindowX(window_id) + GetWindowWidth(window_id) - 2, GetWindowY(window_id) - 1)
                     end
 
                     term.setBackgroundColor(colors.red)
-                    DrawText("X", GetWindowX(window_id) + GetWindowWidth(window_id) - 1, GetWindowY(window_id) - 1)
+                    DrawText('X', GetWindowX(window_id) + GetWindowWidth(window_id) - 1, GetWindowY(window_id) - 1)
                 end
 
                 -- Send a EVENT_PAINT event to the window
@@ -502,7 +519,7 @@ while do_event_loop do
     end
 
     --- Mouse down event
-    if event == "mouse_click" then
+    if event == 'mouse_click' then
         local button = param1
         local x = param2 - 1
         local y = param3 - 1
@@ -554,7 +571,7 @@ while do_event_loop do
     end
 
     --- Mouse up event
-    if event == "mouse_up" then
+    if event == 'mouse_up' then
         local button = param1
         local x = param2 - 1
         local y = param3 - 1
@@ -613,7 +630,7 @@ while do_event_loop do
     end
 
     --- Mouse drag event
-    if event == "mouse_drag" then
+    if event == 'mouse_drag' then
         local button = param1
         local x = param2 - 1
         local y = param3 - 1
@@ -640,7 +657,7 @@ while do_event_loop do
     end
 
     -- Send a key event to the focused window by a key press
-    if event == "key" and windows_focus ~= nil then
+    if event == 'key' and windows_focus ~= nil then
         SendWindowEvent(windows_focus, EVENT_KEY, param1, param2)
     end
 end

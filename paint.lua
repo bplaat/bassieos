@@ -1,4 +1,4 @@
--- !!BassieOS_INFO!! { type = "BassieOS_APP", name = "Paint", version = 1 }
+-- !!BassieOS_INFO!! { type = 'BassieOS_APP', name = 'Paint', version = 1 }
 
 local data = {}
 
@@ -21,7 +21,7 @@ function EventFunction(window_id, event, param1, param2, param3)
             for x = 0, GetWindowWidth(window_id) do
                 if data[y * GetWindowWidth(window_id) + x + 1] == 1 then
                     term.setBackgroundColor(colors.black)
-                    DrawWindowText(window_id, " ", x, y)
+                    DrawWindowText(window_id, ' ', x, y)
                 end
             end
         end
@@ -29,8 +29,8 @@ function EventFunction(window_id, event, param1, param2, param3)
 end
 
 if BASSIEOS_VERSION ~= nil then
-    local window_id = CreateWindow("Paint", math.floor((ScreenWidth() - 32) / 2), math.floor((ScreenHeight() - 14 - 1) / 2), 32, 14, EventFunction)
+    local window_id = CreateWindow('Paint', math.floor((ScreenWidth() - 32) / 2), math.floor((ScreenHeight() - 14 - 1) / 2), 32, 14, EventFunction)
     MaximizeWindow(window_id)
 else
-    print("This program needs BassieOS to run")
+    print('This program needs BassieOS to run')
 end

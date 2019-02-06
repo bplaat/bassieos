@@ -1,13 +1,13 @@
--- !!BassieOS_INFO!! { type = "BassieOS_APP", name = "Editor", version = 1 }
+-- !!BassieOS_INFO!! { type = 'BassieOS_APP', name = 'Editor', version = 1 }
 
-local MENU = { "New", "Open", "Save", "Exit" }
+local MENU = { 'New', 'Open', 'Save', 'Exit' }
 local data = {}
 
 function EventFunction(window_id, event, param1, param2, param3)
     if event == EVENT_CREATE then
-        if args ~= nil and args["path"] ~= nil and fs.exists(args["path"]) and not fs.isDir(args["path"]) then
-            SetWindowTitle(window_id, "Editor - " .. args["path"])
-            local file = fs.open(args["path"], "r")
+        if args ~= nil and args.path ~= nil and fs.exists(args.path) and not fs.isDir(args.path) then
+            SetWindowTitle(window_id, 'Editor - ' .. args.path)
+            local file = fs.open(args.path, 'r')
             local line
             repeat
                 line = file.readLine()
@@ -33,7 +33,7 @@ function EventFunction(window_id, event, param1, param2, param3)
 end
 
 if BASSIEOS_VERSION ~= nil then
-    CreateWindow("Editor", math.floor((ScreenWidth() - 40) / 2), math.floor((ScreenHeight() - 14 - 1) / 2), 40, 14, EventFunction)
+    CreateWindow('Editor', math.floor((ScreenWidth() - 40) / 2), math.floor((ScreenHeight() - 14 - 1) / 2), 40, 14, EventFunction)
 else
-    print("This program needs BassieOS to run")
+    print('This program needs BassieOS to run')
 end
