@@ -1,4 +1,4 @@
--- BassieOS version 1 - A simple Operating System for the MineCraft ComputerCraft advanced color computer
+-- BassieOS - A simple Operating System for the MineCraft ComputerCraft advanced color computer
 -- Made by Bastiaan van der Plaat (https://github.com/bplaat)
 
 -- ####################################### GLOBAL VARS ######################################
@@ -28,7 +28,7 @@ drag_x = 0
 
 -- The global constants
 _G.BASSIEOS_VERSION = 1
-_G.BASSIEOS_INFO_MAGIC = '-- !!BassieOS_INFO!! '
+_G.BASSIEOS_INFO_MAGIC = "-- !!BassieOS_INFO!! "
 
 -- The global event constants
 _G.EVENT_CREATE = 1
@@ -60,7 +60,7 @@ end
 -- Function that splits a string to a table
 function _G.SplitString(str, seperator)
     local result = {}
-    for each in (str .. seperator):gmatch('(.-)' .. seperator) do
+    for each in (str .. seperator):gmatch("(.-)" .. seperator) do
         result[#result + 1] = each
     end
     return result
@@ -69,16 +69,16 @@ end
 -- Function that cuts a string and adds dots to the end
 function _G.StringCut(text, width)
     if string.len(text) > width then
-        return string.sub(text, 0, width - 2) .. '..'
+        return string.sub(text, 0, width - 2) .. ".."
     end
-    return text .. string.rep(' ', width - string.len(text))
+    return text .. string.rep(" ", width - string.len(text))
 end
 
 -- Function that opens a file and runs it as a function
 function _G.RunProgram(path, args)
     if fs.exists(path) then
-        local file = fs.open(path, 'r')
-        local program = load((args ~= nil and 'local args = textutils.unserialize([[' .. textutils.serialize(args) .. ']])\n' or '') .. file.readAll(), path)
+        local file = fs.open(path, "r")
+        local program = load((args ~= nil and "local args = textutils.unserialize([[" .. textutils.serialize(args) .. "]])\n" or "") .. file.readAll(), path)
         file.close()
         if program ~= nil then
             program()
@@ -89,7 +89,7 @@ end
 -- Function that parses the first line of a program which contains program info
 function _G.GetProgramInfo(path)
     if fs.exists(path) then
-        local file = fs.open(path, 'r')
+        local file = fs.open(path, "r")
         local line = file.readLine()
         file.close()
         if string.sub(line, 0, string.len(BASSIEOS_INFO_MAGIC)) == BASSIEOS_INFO_MAGIC then
@@ -262,9 +262,9 @@ function _G.CheckWindowsFocus()
     end
     windows_focus = new_windows_focus
 
-    -- Check if the focused window isn't the same one as the old one
+    -- Check if the focused window isn"t the same one as the old one
     if old_windows_focus ~= windows_focus then
-        -- If the old focused window isn't closed the send a EVENT_LOST_FOCUS event
+        -- If the old focused window isn"t closed the send a EVENT_LOST_FOCUS event
         if old_windows_focus ~= nil and windows[old_windows_focus] ~= 0 then
             SendWindowEvent(old_windows_focus, EVENT_LOST_FOCUS)
         end
@@ -405,7 +405,7 @@ end
 
 -- Function to draw lines in a window
 function _G.DrawWindowLines(window_id, data, x, y)
-    data = SplitString(data, '\n')
+    data = SplitString(data, "\n")
     for i = 1, #data do
         DrawText(data[i], GetWindowX(window_id) + x, GetWindowY(window_id) + y + (i - 1))
     end
@@ -427,7 +427,7 @@ end
 function _G.DrawWindowMenu(window_id, menu)
     term.setTextColor(colors.white)
     term.setBackgroundColor(window_id == GetFocusedWindow() and colors.gray or colors.lightGray)
-    DrawWindowText(window_id, string.rep(' ', GetWindowWidth(window_id)), 0, 0)
+    DrawWindowText(window_id, string.rep(" ", GetWindowWidth(window_id)), 0, 0)
     local offset = 0
     for i = 1, #menu do
         DrawWindowText(window_id, menu[i], offset, 0)
@@ -455,7 +455,7 @@ local text_color = term.getTextColor()
 local background_color = term.getBackgroundColor()
 
 -- Start the BassieOS bar
-RunProgram('bar.lua')
+RunProgram("bar.lua")
 
 -- Send a timer event to start the paint loop
 os.startTimer(1 / 20)
@@ -465,7 +465,7 @@ while do_event_loop do
     local event, param1, param2, param3 = os.pullEvent()
 
     -- Paint the screen event
-    if event == 'timer' then
+    if event == "timer" then
         -- Clear the screen with a background color
         term.setBackgroundColor(colors.cyan)
         term.clear()
@@ -480,11 +480,11 @@ while do_event_loop do
                     -- Draw the window boxes
                     term.setBackgroundColor(window_id == windows_focus and colors.black or colors.gray)
                     for y = 0, GetWindowHeight(window_id) + 1 do
-                        DrawText(string.rep(' ', GetWindowWidth(window_id) + 2), GetWindowX(window_id) - 1, GetWindowY(window_id) - 1 + y)
+                        DrawText(string.rep(" ", GetWindowWidth(window_id) + 2), GetWindowX(window_id) - 1, GetWindowY(window_id) - 1 + y)
                     end
                     term.setBackgroundColor(colors.white)
                     for y = 0, GetWindowHeight(window_id) - 1 do
-                        DrawText(string.rep(' ', GetWindowWidth(window_id)), GetWindowX(window_id), GetWindowY(window_id) + y)
+                        DrawText(string.rep(" ", GetWindowWidth(window_id)), GetWindowX(window_id), GetWindowY(window_id) + y)
                     end
 
                     -- Draw the window header decorations
@@ -495,16 +495,16 @@ while do_event_loop do
                     -- Check window is resizable
                     if CheckBit(GetWindowStyle(window_id), 3) then
                         term.setBackgroundColor(colors.orange)
-                        DrawText('_', GetWindowX(window_id) + GetWindowWidth(window_id) - 3, GetWindowY(window_id) - 1)
+                        DrawText("_", GetWindowX(window_id) + GetWindowWidth(window_id) - 3, GetWindowY(window_id) - 1)
                         term.setBackgroundColor(colors.green)
-                        DrawText(IsWindowMaximized(window_id) and 'o' or 'O', GetWindowX(window_id) + GetWindowWidth(window_id) - 2, GetWindowY(window_id) - 1)
+                        DrawText(IsWindowMaximized(window_id) and "o" or "O", GetWindowX(window_id) + GetWindowWidth(window_id) - 2, GetWindowY(window_id) - 1)
                     else
                         term.setBackgroundColor(colors.orange)
-                        DrawText('_', GetWindowX(window_id) + GetWindowWidth(window_id) - 2, GetWindowY(window_id) - 1)
+                        DrawText("_", GetWindowX(window_id) + GetWindowWidth(window_id) - 2, GetWindowY(window_id) - 1)
                     end
 
                     term.setBackgroundColor(colors.red)
-                    DrawText('X', GetWindowX(window_id) + GetWindowWidth(window_id) - 1, GetWindowY(window_id) - 1)
+                    DrawText("X", GetWindowX(window_id) + GetWindowWidth(window_id) - 1, GetWindowY(window_id) - 1)
                 end
 
                 -- Send a EVENT_PAINT event to the window
@@ -519,7 +519,7 @@ while do_event_loop do
     end
 
     --- Mouse down event
-    if event == 'mouse_click' then
+    if event == "mouse_click" then
         local button = param1
         local x = param2 - 1
         local y = param3 - 1
@@ -571,7 +571,7 @@ while do_event_loop do
     end
 
     --- Mouse up event
-    if event == 'mouse_up' then
+    if event == "mouse_up" then
         local button = param1
         local x = param2 - 1
         local y = param3 - 1
@@ -630,12 +630,12 @@ while do_event_loop do
     end
 
     --- Mouse drag event
-    if event == 'mouse_drag' then
+    if event == "mouse_drag" then
         local button = param1
         local x = param2 - 1
         local y = param3 - 1
 
-        -- When a window is beeing draged change it's position
+        -- When a window is beeing draged change it"s position
         if drag_window_id ~= nil then
             SetWindowX(drag_window_id, x - drag_x)
             SetWindowY(drag_window_id, y + 1)
@@ -657,7 +657,7 @@ while do_event_loop do
     end
 
     -- Send a key event to the focused window by a key press
-    if event == 'key' and windows_focus ~= nil then
+    if event == "key" and windows_focus ~= nil then
         SendWindowEvent(windows_focus, EVENT_KEY, param1, param2)
     end
 end

@@ -1,20 +1,20 @@
--- !!BassieOS_INFO!! { type = 'BassieOS_PROGRAM', name = 'BassieOS Bar', version = 1 }
+-- !!BassieOS_INFO!! { type = "BassieOS_PROGRAM", name = "BassieOS Bar", version = 1 }
 
 local menu
 local menu_window_id
 local menu_width
-local SHUTDOWN = 'Shutdown'
+local SHUTDOWN = "Shutdown"
 
 local LIST_WIDTH = 10
 
 function MenuEventFunction(window_id, event, param1, param2, param3)
     if event == EVENT_CREATE then
         menu = {}
-        local files = fs.list('.')
+        local files = fs.list(".")
         for i = 1, #files do
             if not fs.isDir(files[i]) then
                 local info = GetProgramInfo(files[i])
-                if info ~= nil and info.type == 'BassieOS_APP' then
+                if info ~= nil and info.type == "BassieOS_APP" then
                     menu[#menu + 1] = info.name
                     menu[#menu + 1] = files[i]
                 end
@@ -57,9 +57,9 @@ function MenuEventFunction(window_id, event, param1, param2, param3)
         term.setTextColor(colors.white)
         term.setBackgroundColor(colors.gray)
         for i = 1, #menu, 2 do
-            DrawWindowText(window_id, menu[i] .. string.rep(' ', menu_width - string.len(menu[i])), 0, GetWindowHeight(window_id) - (#menu / 2) - 2 + math.floor(i / 2))
+            DrawWindowText(window_id, menu[i] .. string.rep(" ", menu_width - string.len(menu[i])), 0, GetWindowHeight(window_id) - (#menu / 2) - 2 + math.floor(i / 2))
         end
-        DrawWindowText(window_id, SHUTDOWN .. string.rep(' ', menu_width - string.len(SHUTDOWN)), 0, GetWindowHeight(window_id) - 2)
+        DrawWindowText(window_id, SHUTDOWN .. string.rep(" ", menu_width - string.len(SHUTDOWN)), 0, GetWindowHeight(window_id) - 2)
     end
 end
 
@@ -69,7 +69,7 @@ function EventFunction(window_id, event, param1, param2, param3)
         local y = param3
 
         if x >= 0 and x <= 4 then
-            menu_window_id = CreateWindow('Menu', 0, 0, ScreenWidth(), ScreenHeight(), MenuEventFunction, WINDOW_STYLE_TOPMOST + WINDOW_STYLE_VISIBLE)
+            menu_window_id = CreateWindow("Menu", 0, 0, ScreenWidth(), ScreenHeight(), MenuEventFunction, WINDOW_STYLE_TOPMOST + WINDOW_STYLE_VISIBLE)
             return
         end
 
@@ -117,13 +117,13 @@ function EventFunction(window_id, event, param1, param2, param3)
     end
     if event == EVENT_PAINT then
         term.setBackgroundColor(colors.black)
-        DrawWindowText(window_id, string.rep(' ', GetWindowWidth(window_id)), 0, 0)
+        DrawWindowText(window_id, string.rep(" ", GetWindowWidth(window_id)), 0, 0)
 
         term.setTextColor(colors.white)
         if menu_window_id ~= nil then
             term.setBackgroundColor(colors.gray)
         end
-        DrawWindowText(window_id, 'Start', 0, 0)
+        DrawWindowText(window_id, "Start", 0, 0)
 
         local windows = GetWindows()
         local offset = 6
@@ -137,16 +137,16 @@ function EventFunction(window_id, event, param1, param2, param3)
 
         local time_label = textutils.formatTime(os.time(), true)
         if string.len(time_label) == 4 then
-            time_label = '0' .. time_label
+            time_label = "0" .. time_label
         end
         term.setBackgroundColor(colors.black)
         DrawWindowText(window_id, time_label, GetWindowWidth(window_id) - string.len(time_label) - 1, 0)
-        DrawWindowText(window_id, ' ', GetWindowWidth(window_id) - 1, 0)
+        DrawWindowText(window_id, " ", GetWindowWidth(window_id) - 1, 0)
     end
 end
 
 if BASSIEOS_VERSION ~= nil then
-    CreateWindow('Bar', 0, ScreenHeight() - 1, ScreenWidth(), 1, EventFunction, WINDOW_STYLE_TOPMOST + WINDOW_STYLE_VISIBLE)
+    CreateWindow("Bar", 0, ScreenHeight() - 1, ScreenWidth(), 1, EventFunction, WINDOW_STYLE_TOPMOST + WINDOW_STYLE_VISIBLE)
 else
-    print('This program needs BassieOS to run')
+    print("This program needs BassieOS to run")
 end
