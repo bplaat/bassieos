@@ -2,30 +2,34 @@
 
 local menu
 local paths = { "/" }
+local path
 local files_list
 
 local function LoadFolder(window_id)
-    local path = table.concat(paths)
+    path = ""
+    for i = 1, #paths do
+        path = path .. paths[i]
+    end
     SetWindowTitle(window_id, "Files - " .. path)
 
     menu = { "Up" }
     for i = 1, #paths do
-        table.insert(menu, paths[i])
+        menu[#menu + 1] = paths[i]
     end
 
     local files = fs.list(path)
     files_list = {}
     for i = 1, #files do
         if fs.isDir(path .. files[i]) then
-            table.insert(files_list, files[i] .. "/")
-            table.insert(files_list, #fs.list(path .. files[i]))
+            files_list[#files_list + 1] = files[i] .. "/"
+            files_list[#files_list + 1] = #fs.list(path .. files[i])
             
         end
     end
     for i = 1, #files do
         if not fs.isDir(path .. files[i]) then
-            table.insert(files_list, files[i])
-            table.insert(files_list, fs.getSize(path .. files[i]))
+            files_list[#files_list + 1] = files[i]
+            files_list[#files_list + 1] = fs.getSize(path .. files[i])
         end
     end
 end
@@ -62,14 +66,16 @@ function EventFunction(window_id, event, param1, param2, param3)
         CheckWindowMenuClick(window_id, menu, x, y)
 
         for i = 1, #files_list, 2 do
-            if x > 0 and x < GetWindowWidth(window_id) - 1 and y == math.ceil(i / 2) then
+            if x >= 0 and x < GetWindowWidth(window_id) and y == math.ceil(i / 2) then
                 if string.sub(files_list[i], string.len(files_list[i])) == "/" then
-                    table.insert(paths, files_list[i])
+                    paths[#paths + 1] = files_list[i]
                     LoadFolder(window_id)
                 else
-                    local info = GetProgramInfo(table.concat(paths) .. files_list[i])
+                    local info = GetProgramInfo(path .. files_list[i])
                     if info ~= nil and info["type"] == "BassieOS_APP" then
-                        RunProgram(table.concat(paths) .. files_list[i])
+                        RunProgram(path .. files_list[i])
+                    else
+                        RunProgram("edit.lua", { ["path"] = path .. files_list[i] })
                     end
                 end
                 return
@@ -80,9 +86,12 @@ function EventFunction(window_id, event, param1, param2, param3)
         DrawWindowMenu(window_id, menu)
         for i = 1, math.min(#files_list, (GetWindowHeight(window_id) - 1) * 2), 2 do
             if string.sub(files_list[i], string.len(files_list[i])) == "/" then
-                DrawWindowText(window_id, files_list[i] .. " - " ..  files_list[i + 1] .. " files", 1, math.ceil(i / 2))
+                term.setBackgroundColor(colors.yellow)
+                local text = files_list[i] .. " - " ..  files_list[i + 1] .. " files"
+                DrawWindowText(window_id, text .. string.rep(" ", GetWindowWidth(window_id) - string.len(text)), 0, math.ceil(i / 2))
             else
-                DrawWindowText(window_id, files_list[i] .. " - " ..  math.ceil(files_list[i + 1] / 1024) .. " KB", 1, math.ceil(i / 2))
+                term.setBackgroundColor(colors.white)
+                DrawWindowText(window_id, files_list[i] .. " - " ..  math.ceil(files_list[i + 1] / 1024) .. " KB", 0, math.ceil(i / 2))
             end
         end
     end

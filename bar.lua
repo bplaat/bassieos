@@ -15,8 +15,8 @@ function MenuEventFunction(window_id, event, param1, param2, param3)
             if not fs.isDir(files[i]) then
                 local info = GetProgramInfo(files[i])
                 if info ~= nil and info["type"] == "BassieOS_APP" then
-                    table.insert(menu, info["name"])
-                    table.insert(menu, files[i])
+                    menu[#menu + 1] = info["name"]
+                    menu[#menu + 1] = files[i]
                 end
             end
         end

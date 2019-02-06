@@ -66,10 +66,10 @@ function _G.StringCut(text, width)
 end
 
 -- Function that opens a file and runs it as a function
-function _G.RunProgram(path)
+function _G.RunProgram(path, args)
     if fs.exists(path) then
         local file = fs.open(path, "r")
-        local program = load(file.readAll(), path)
+        local program = load((args ~= nil and "local args = " .. textutils.serialize(args) .. "\n" or "") .. file.readAll(), path)
         file.close()
         if program ~= nil then
             program()
@@ -107,7 +107,7 @@ function _G.GetWindows()
     local windows_ids = {}
     for i = 1, #windows do
         if windows[i] ~= 0 then
-            table.insert(windows_ids, i)
+            windows_ids[#windows_ids + 1] = i
         end
     end
     return windows_ids
@@ -144,7 +144,7 @@ function _G.CreateWindow(title, x, y, width, height, event_function, style)
     SendWindowEvent(window["id"], EVENT_CREATE)
 
     -- Add window to window order and focus the window
-    table.insert(windows_order, window["id"])
+    windows_order[#windows_order + 1] = window["id"]
     FocusWindow(window["id"])
 
     return window["id"]
@@ -275,19 +275,19 @@ function _G.FocusWindow(window_id)
         local new_windows_order = {}
 
         -- Add the window_id
-        table.insert(new_windows_order, window_id)
+        new_windows_order[#new_windows_order + 1] = window_id
 
         -- Loop trough the windows order and add when it has window style WINDOW_STYLE_TOPMOST
         for i = 1, #windows_order do
             if CheckBit(GetWindowStyle(windows_order[i]), 5) and windows_order[i] ~= window_id then
-                table.insert(new_windows_order, windows_order[i])
+                new_windows_order[#new_windows_order + 1] = windows_order[i]
             end
         end
 
         -- Loop trough the windows order and add when it has no window style WINDOW_STYLE_TOPMOST
         for i = 1, #windows_order do
             if not CheckBit(GetWindowStyle(windows_order[i]), 5) then
-                table.insert(new_windows_order, windows_order[i])
+                new_windows_order[#new_windows_order + 1] = windows_order[i]
             end
         end
 
@@ -300,17 +300,17 @@ function _G.FocusWindow(window_id)
         -- Loop trough the windows order and add when it has window style WINDOW_STYLE_TOPMOST
         for i = 1, #windows_order do
             if CheckBit(GetWindowStyle(windows_order[i]), 5) then
-                table.insert(new_windows_order, windows_order[i])
+                new_windows_order[#new_windows_order + 1] = windows_order[i]
             end
         end
 
         -- Add the window_id
-        table.insert(new_windows_order, window_id)
+        new_windows_order[#new_windows_order + 1] = window_id
 
         -- Loop trough the windows order and add when it has no window style WINDOW_STYLE_TOPMOST
         for i = 1, #windows_order do
             if not CheckBit(GetWindowStyle(windows_order[i]), 5) and windows_order[i] ~= window_id then
-                table.insert(new_windows_order, windows_order[i])
+                new_windows_order[#new_windows_order + 1] = windows_order[i]
             end
         end
 
@@ -331,11 +331,11 @@ function _G.MinimizeWindow(window_id)
     local new_windows_order = {}
     for i = 1, #windows_order do
         if windows_order[i] ~= window_id then
-            table.insert(new_windows_order, windows_order[i])
+            new_windows_order[#new_windows_order + 1] = windows_order[i]
         end
     end
     -- Insert itself at the end and set the windows_order array
-    table.insert(new_windows_order, window_id)
+    new_windows_order[#new_windows_order + 1] = window_id
     windows_order = new_windows_order
 
     -- Check the windows_focus global variable
@@ -374,7 +374,7 @@ function _G.CloseWindow(window_id)
     local new_windows_order = {}
     for i = 1, #windows_order do
         if windows_order[i] ~= window_id then
-            table.insert(new_windows_order, windows_order[i])
+            new_windows_order[#new_windows_order + 1] = windows_order[i]
         end
     end
     windows_order = new_windows_order
@@ -562,51 +562,51 @@ while do_event_loop do
         -- When a window is beeing draged release it
         if drag_window_id ~= nil then
             drag_window_id = nil
-        end
-
-        -- Loop trough windows in windows_order
-        for i = 1, #windows_order do
-            local window_id = windows_order[i]
-            -- Check if the window has window style WINDOW_STYLE_VISIBLE and is not minimized
-            if CheckBit(GetWindowStyle(window_id), 0) and not IsWindowMinimized(window_id) then
-                -- Check if a window is decorated
-                if CheckBit(GetWindowStyle(window_id), 1) then
-                    -- Check window is resizable
-                    if CheckBit(GetWindowStyle(window_id), 3) then
-                        -- Check if minimize button is clicked
-                        if x == GetWindowX(window_id) + GetWindowWidth(window_id) - 3 and y == GetWindowY(window_id) - 1  then
-                            MinimizeWindow(window_id)
-                            break
-                        end
-
-                        -- Check if maximize button is clicked
-                        if x == GetWindowX(window_id) + GetWindowWidth(window_id) - 2 and y == GetWindowY(window_id) - 1  then
-                            if IsWindowMaximized(window_id) then
-                                NormalWindow(window_id)
-                            else
-                                MaximizeWindow(window_id)
+        else
+            -- Loop trough windows in windows_order
+            for i = 1, #windows_order do
+                local window_id = windows_order[i]
+                -- Check if the window has window style WINDOW_STYLE_VISIBLE and is not minimized
+                if CheckBit(GetWindowStyle(window_id), 0) and not IsWindowMinimized(window_id) then
+                    -- Check if a window is decorated
+                    if CheckBit(GetWindowStyle(window_id), 1) then
+                        -- Check window is resizable
+                        if CheckBit(GetWindowStyle(window_id), 3) then
+                            -- Check if minimize button is clicked
+                            if x == GetWindowX(window_id) + GetWindowWidth(window_id) - 3 and y == GetWindowY(window_id) - 1  then
+                                MinimizeWindow(window_id)
+                                break
                             end
-                            break
+
+                            -- Check if maximize button is clicked
+                            if x == GetWindowX(window_id) + GetWindowWidth(window_id) - 2 and y == GetWindowY(window_id) - 1  then
+                                if IsWindowMaximized(window_id) then
+                                    NormalWindow(window_id)
+                                else
+                                    MaximizeWindow(window_id)
+                                end
+                                break
+                            end
+                        else
+                            -- Check if minimize button is clicked
+                            if x == GetWindowX(window_id) + GetWindowWidth(window_id) - 2 and y == GetWindowY(window_id) - 1  then
+                                MinimizeWindow(window_id)
+                                break
+                            end
                         end
-                    else
-                        -- Check if minimize button is clicked
-                        if x == GetWindowX(window_id) + GetWindowWidth(window_id) - 2 and y == GetWindowY(window_id) - 1  then
-                            MinimizeWindow(window_id)
+
+                        -- Check if close button is clicked
+                        if x == GetWindowX(window_id) + GetWindowWidth(window_id) - 1 and y == GetWindowY(window_id) - 1  then
+                            CloseWindow(window_id)
                             break
                         end
                     end
-
-                    -- Check if close button is clicked
-                    if x == GetWindowX(window_id) + GetWindowWidth(window_id) - 1 and y == GetWindowY(window_id) - 1  then
-                        CloseWindow(window_id)
+                    -- Send event when window body is clicked
+                    if x >= GetWindowX(window_id) and y >= GetWindowY(window_id) and
+                        x < GetWindowX(window_id) + GetWindowWidth(window_id) and y < GetWindowY(window_id) + GetWindowHeight(window_id) then
+                        SendWindowEvent(window_id, EVENT_MOUSE_UP, button, x - GetWindowX(window_id), y - GetWindowY(window_id))
                         break
                     end
-                end
-                -- Send event when window body is clicked
-                if x >= GetWindowX(window_id) and y >= GetWindowY(window_id) and
-                    x < GetWindowX(window_id) + GetWindowWidth(window_id) and y < GetWindowY(window_id) + GetWindowHeight(window_id) then
-                    SendWindowEvent(window_id, EVENT_MOUSE_UP, button, x - GetWindowX(window_id), y - GetWindowY(window_id))
-                    break
                 end
             end
         end
