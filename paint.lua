@@ -1,36 +1,88 @@
--- !!BassieOS_INFO!! { type = "BassieOS_APP", name = "Paint", version = 1 }
+-- !!BassieOS_INFO!! { type = 11, name = "Paint", version = 2, author = "Bastiaan van der Plaat <bastiaan.v.d.plaat@gmail.com>" }
+if BASSIEOS_VERSION == nil then
+    print("This program needs BassieOS to run")
+    return
+end
 
-local data = {}
+local menu = { "New", "Open", "Save", "Exit" }
 
-function EventFunction(window_id, event, param1, param2, param3)
-    if event == EVENT_CREATE or event == EVENT_RESIZE then
-        for i = 1, GetWindowHeight(window_id) * GetWindowWidth(window_id) do
-            data[i] = 0
+local image = {}
+local image_width
+local image_height
+
+local current_color = 2 ^ 15
+
+local function PaintEventFunction(window_id, event, param1, param2, param3)
+    if event == WINDOW_EVENT_CREATE then
+        MaximizeWindow(window_id, true)
+    end
+    if event == WINDOW_EVENT_CREATE or event == WINDOW_EVENT_SIZE then
+        image_width = GetWindowWidth(window_id)
+        image_height = GetWindowHeight(window_id) -2
+        for i = 1, image_height * image_width do
+            image[i] = 1
         end
     end
-    if event == EVENT_MOUSE_DOWN or event == EVENT_MOUSE_DRAG then
-        if param1 == 1 then
-            data[param3 * GetWindowWidth(window_id) + param2 + 1] = 1
-        end
-        if param1 == 2 then
-            data[param3 * GetWindowWidth(window_id) + param2 + 1] = 0
+    if event == WINDOW_EVENT_MOUSE_DOWN or event == WINDOW_EVENT_MOUSE_DRAG then
+        local button = param1
+        local x = param2
+        local y = param3
+
+        if y > 0 and y < GetWindowHeight(window_id) - 1 then
+            image[(y - 1) * image_width + x + 1] = current_color
         end
     end
-    if event == EVENT_PAINT then
-        for y = 0, GetWindowHeight(window_id) do
-            for x = 0, GetWindowWidth(window_id) do
-                if data[y * GetWindowWidth(window_id) + x + 1] == 1 then
-                    term.setBackgroundColor(colors.black)
-                    DrawWindowText(window_id, " ", x, y)
-                end
+    if event == WINDOW_EVENT_MOUSE_UP then
+        local button = param1
+        local x = param2
+        local y = param3
+
+        CheckWindowMenuClick(window_id, menu, x, y)
+
+        local color_width = math.floor(GetWindowWidth(window_id) / 16)
+        for i = 0, 15 do
+            if x >= i * color_width and x < (i + 1) * color_width and y == GetWindowHeight(window_id) - 1 then
+                current_color = 2 ^ i
+                return
             end
         end
     end
+    if event == WINDOW_EVENT_MENU then
+        if param1 == 3 then
+            local file = fs.open("/mini/export.bimg", "w")
+            
+            file.write(string.format("BIMG%02x%02x", image_width, image_height))
+            
+            for i = 1, image_height * image_width do
+                file.write(string.format(" %1x%1x", math.log(image[i]) / math.log(2), math.log(image[i]) / math.log(2)))
+            end
+            
+            file.close()
+        end
+        if param1 == 4 then
+            CloseWindow(window_id)
+        end
+    end
+    if event == WINDOW_EVENT_PAINT then
+        DrawWindowMenu(window_id, menu)
+
+        for y = 0, image_height do
+            for x = 0, image_width do
+                local color = image[y * image_width + x + 1]
+                if color ~= 1 then
+                    SetBackgroundColor(color)
+                    DrawWindowText(window_id, " ", x, y + 1)
+                end
+            end
+        end
+
+        local color_width = math.floor(GetWindowWidth(window_id) / 16)
+        for i = 0, 15 do
+            SetTextColor(i == 15 and colors.white or colors.black)
+            SetBackgroundColor(2 ^ i)
+            DrawWindowText(window_id, string.rep(current_color == 2 ^ i and "#" or " ", color_width), i * color_width, GetWindowHeight(window_id) - 1)
+        end
+    end
 end
 
-if BASSIEOS_VERSION ~= nil then
-    local window_id = CreateWindow("Paint", math.floor((ScreenWidth() - 32) / 2), math.floor((ScreenHeight() - 14 - 1) / 2), 32, 14, EventFunction)
-    MaximizeWindow(window_id)
-else
-    print("This program needs BassieOS to run")
-end
+CreateWindow("Paint", WINDOW_USE_DEFAULT, WINDOW_USE_DEFAULT, 32, 14, PaintEventFunction)

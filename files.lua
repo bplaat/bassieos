@@ -1,7 +1,11 @@
--- !!BassieOS_INFO!! { type = "BassieOS_APP", name = "Files", version = 1 }
+-- !!BassieOS_INFO!! { type = 11, name = "Files", version = 2, icon = "BIMG0403 11 11 11 00Ff1If1Lf1Ef1 11 11 11 11", author = "Bastiaan van der Plaat <bastiaan.v.d.plaat@gmail.com>" }
+if BASSIEOS_VERSION == nil then
+    print("This program needs BassieOS to run")
+    return
+end
 
 local menu
-local paths = { "/" }
+local paths
 local path
 local files_list
 
@@ -23,7 +27,7 @@ local function LoadFolder(window_id)
         if fs.isDir(path .. files[i]) then
             files_list[#files_list + 1] = files[i] .. "/"
             files_list[#files_list + 1] = #fs.list(path .. files[i])
-            
+
         end
     end
     for i = 1, #files do
@@ -34,11 +38,17 @@ local function LoadFolder(window_id)
     end
 end
 
-function EventFunction(window_id, event, param1, param2, param3)
-    if event == EVENT_CREATE then
+local function FilesEventFunction(window_id, event, param1, param2, param3)
+    if event == WINDOW_EVENT_CREATE then
+        paths = { "/" }
+        if args ~= nil and args[1] ~= nil and type(args[1]) == "string" and fs.exists(args[1]) and fs.isDir(args[1]) then
+            for part in string.gmatch(args[1], "([^/]+)") do
+                paths[#paths + 1] = part .. "/"
+            end
+        end
         LoadFolder(window_id)
     end
-    if event == EVENT_MENU then
+    if event == WINDOW_EVENT_MENU then
         local menu_item = param1
 
         if menu_item == 1 then
@@ -59,7 +69,7 @@ function EventFunction(window_id, event, param1, param2, param3)
             end
         end
     end
-    if event == EVENT_MOUSE_UP then
+    if event == WINDOW_EVENT_MOUSE_UP then
         local x = param2
         local y = param3
 
@@ -72,33 +82,28 @@ function EventFunction(window_id, event, param1, param2, param3)
                     LoadFolder(window_id)
                 else
                     local info = GetProgramInfo(path .. files_list[i])
-                    if info ~= nil and info.type == "BassieOS_APP" then
+                    if info ~= nil and CheckOnion(info.type, BASSIEOS_INFO_TYPE_APP) then
                         RunProgram(path .. files_list[i])
                     else
-                        RunProgram("edit.lua", { ["path"] = path .. files_list[i] })
+                        RunProgram("/mini/edit.lua", { path .. files_list[i] })
                     end
                 end
                 return
             end
         end
     end
-    if event == EVENT_PAINT then
+    if event == WINDOW_EVENT_PAINT then
         DrawWindowMenu(window_id, menu)
         for i = 1, math.min(#files_list, (GetWindowHeight(window_id) - 1) * 2), 2 do
             if string.sub(files_list[i], string.len(files_list[i])) == "/" then
-                term.setBackgroundColor(colors.yellow)
-                local text = files_list[i] .. " - " ..  files_list[i + 1] .. " files"
-                DrawWindowText(window_id, text .. string.rep(" ", GetWindowWidth(window_id) - string.len(text)), 0, math.ceil(i / 2))
+                SetBackgroundColor(colors.yellow)
+                DrawWindowText(window_id, CutString(files_list[i] .. " - " ..  files_list[i + 1] .. " files", GetWindowWidth(window_id)), 0, math.ceil(i / 2))
             else
-                term.setBackgroundColor(colors.white)
+                SetBackgroundColor(colors.white)
                 DrawWindowText(window_id, files_list[i] .. " - " ..  math.ceil(files_list[i + 1] / 1024) .. " KB", 0, math.ceil(i / 2))
             end
         end
     end
 end
 
-if BASSIEOS_VERSION ~= nil then
-    CreateWindow("Files", math.floor((ScreenWidth() - 30) / 2), math.floor((ScreenHeight() - 14 - 1) / 2), 30, 14, EventFunction)
-else
-    print("This program needs BassieOS to run")
-end
+CreateWindow("Files", WINDOW_USE_DEFAULT, WINDOW_USE_DEFAULT, 30, 14, FilesEventFunction)
