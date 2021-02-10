@@ -1119,9 +1119,8 @@ end
 -- Begin screen
 BeginScreen()
 
--- Start system processes
+-- Start system bar process
 BassieOS.CreateProcess('/bar.lua')
-BassieOS.CreateProcess('/apps/tasks.lua')
 
 -- Event loop
 local window_drag = {}

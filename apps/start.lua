@@ -35,32 +35,6 @@ local WindowMessageFunction = function (window_id, message, param1, param2, para
         BassieOS.CloseWindow(window_id)
     end
 
-    if message == BassieOS.WindowMessage.MOUSE_UP then
-        local button = param1
-        local x = param2
-        local y = param3
-
-        -- Handle icon grid
-        local max_tiles = math.floor((BassieOS.GetWindowWidth(window_id) - 1) / 7)
-        local offset_x = 1 + math.floor((BassieOS.GetWindowWidth(window_id) - max_tiles * 7) / 2)
-        local offset_y = 1
-        local column = 0
-        local row = 0
-        for i = 1, #apps do
-            if x >= column * 7 + offset_x and y >= row * 5 + offset_y and x < column * 7 + 6 + offset_x and y < row * 5 + 4 + offset_y then
-                BassieOS.CreateProcess(apps[i].path)
-                BassieOS.CloseWindow(window_id)
-                return
-            end
-            if column == max_tiles - 1 then
-                column = 0
-                row = row + 1
-            else
-                column = column + 1
-            end
-        end
-    end
-
     if message == BassieOS.WindowMessage.DRAW then
         local bitmap = param1
         local width = param2
@@ -83,6 +57,32 @@ local WindowMessageFunction = function (window_id, message, param1, param2, para
 
             BassieOS.DrawText(bitmap, column * 7 + offset_x, row * 5 + 3 + offset_y, BassieOS.EllipseString(apps[i].name, 6, true), text_color, background_color)
 
+            if column == max_tiles - 1 then
+                column = 0
+                row = row + 1
+            else
+                column = column + 1
+            end
+        end
+    end
+
+    if message == BassieOS.WindowMessage.MOUSE_UP then
+        local button = param1
+        local x = param2
+        local y = param3
+
+        -- Handle icon grid
+        local max_tiles = math.floor((BassieOS.GetWindowWidth(window_id) - 1) / 7)
+        local offset_x = 1 + math.floor((BassieOS.GetWindowWidth(window_id) - max_tiles * 7) / 2)
+        local offset_y = 1
+        local column = 0
+        local row = 0
+        for i = 1, #apps do
+            if x >= column * 7 + offset_x and y >= row * 5 + offset_y and x < column * 7 + 6 + offset_x and y < row * 5 + 4 + offset_y then
+                BassieOS.CreateProcess(apps[i].path)
+                BassieOS.CloseWindow(window_id)
+                return
+            end
             if column == max_tiles - 1 then
                 column = 0
                 row = row + 1
