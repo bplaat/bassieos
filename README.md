@@ -1,15 +1,27 @@
 # bplaat/bassieos
-A simple Operating System for the MineCraft ComputerCraft advanced color computer
+A simple Operating System / Window Manger for the MineCraft ComputerCraft computers written in Lua
+
+## Features
+- A complete window manager
+- System light and dark theme
+- Windows like taskbar
+- Resizable windows
+- Window snapping
+- Virtual text bitmap rendering
+- File manager application?
+- Paint application?
+- Editor application?
 
 ## How to install?
-Just copy all the files to an editor in CraftOS on your advanced color computer
+To run this in Minecraft install the [ComputerCraft mod](https://www.computercraft.info/)
 
-## Some screenshots
-![Screenshot 1](bassieos-screenshot1.png)
+Or use a standalone [ComputerCraft emulator](https://emux.cc/)
 
-![Screenshot 2](bassieos-screenshot2.png)
+And just copy all the files to the root of computer with CraftOS
 
-![Screenshot 3](bassieos-screenshot3.png)
+## Screenshots
+Here are some screenshots taken with the ComputerCraft emulator running BassieOS:
 
-## More information
-For more information go to: http://www.computercraft.info/wiki/Main_Page
+![Screenshot 1](docs/screenshot1.png)
+
+![Screenshot 2](docs/screenshot2.png)
