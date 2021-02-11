@@ -29,6 +29,10 @@ local WindowMessageFunction = function (window_id, message, param1, param2, para
             end
         end
         CheckDirectory('/')
+
+        table.sort(apps, function (a, b)
+            return string.lower(a.name) < string.lower(b.name)
+        end)
     end
 
     if message == BassieOS.WindowMessage.BACK then

@@ -8,6 +8,7 @@ local WINDOW_MESSAGE_MENU = 1234
 
 local menu = { 'New', 'Open', 'Save', 'Exit' }
 
+local canvas_path = '/image.bimg'
 local canvas_bitmap = nil
 local canvas_character = ' '
 local canvas_text_color = colors.white
@@ -25,6 +26,20 @@ local WindowMessageFunction = function (window_id, message, param1, param2, para
 
         local width = BassieOS.GetWindowWidth(window_id)
         local height = BassieOS.GetWindowHeight(window_id)
+
+        if args ~= nil and args[1] ~= nil and type(args[1]) == 'string' and fs.exists(args[1]) and not fs.isDir(args[1]) then
+            local file = fs.open(args[1], 'r')
+            if file ~= nil then
+                local contents = file.readAll()
+                file.close()
+                if contents ~= nil then
+                    canvas_path = args[1]
+                    BassieOS.SetWindowTitle(window_id, 'Paint - ' .. canvas_path)
+                    canvas_bitmap = BassieOS.BassieImageToBitmap(contents)
+                    return
+                end
+            end
+        end
 
         canvas_bitmap = BassieOS.CreateBitmap(width - 1, height - 4)
     end
@@ -240,31 +255,42 @@ local WindowMessageFunction = function (window_id, message, param1, param2, para
     end
 
     if message == WINDOW_MESSAGE_MENU then
-        local id = param1
+        local menu_item = param1
 
-        if id == 1 then
+        -- New button
+        if menu_item == 1 then
             canvas_bitmap = BassieOS.CreateBitmap(canvas_bitmap.width, canvas_bitmap.height)
             last_x = nil
             last_y = nil
             BassieOS.InvalidWindow(window_id, true)
         end
 
-        if id == 2 then
-            local file = fs.open('image.bimg', 'r')
-            canvas_bitmap = BassieOS.BassieImageToBitmap(file.readAll())
-            last_x = nil
-            last_y = nil
-            file.close()
-            BassieOS.InvalidWindow(window_id, true)
+        -- Open button
+        if menu_item == 2 then
+            local file = fs.open(canvas_path, 'r')
+            if file ~= nil then
+                local contents = file.readAll()
+                file.close()
+                if contents ~= nil then
+                    BassieOS.SetWindowTitle(window_id, 'Paint - ' .. canvas_path)
+                    canvas_bitmap = BassieOS.BassieImageToBitmap(contents)
+                    last_x = nil
+                    last_y = nil
+                    BassieOS.InvalidWindow(window_id, true)
+                end
+            end
         end
 
-        if id == 3 then
-            local file = fs.open('image.bimg', 'w')
+        -- Save button
+        if menu_item == 3 then
+            BassieOS.SetWindowTitle(window_id, 'Paint - ' .. canvas_path)
+            local file = fs.open(canvas_path, 'w')
             file.write(BassieOS.BitmapToBassieImage(canvas_bitmap))
             file.close()
         end
 
-        if id == 4 then
+        -- Exit button
+        if menu_item == 4 then
             BassieOS.CloseWindow(window_id)
         end
     end

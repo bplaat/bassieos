@@ -45,13 +45,17 @@ BassieOS.VERSION_STRING = '3.0'
 BassieOS.CreateProcess = function (path, args)
     if type(path) == 'string' and fs.exists(path) and not fs.isDir(path) and (type(args) == 'table' or args == nil) then
         local file = fs.open(path, 'r')
-        local program, error = load((args ~= nil and 'local args = textutils.unserialize([[' .. textutils.serialize(args) .. ']])\n' or '') .. file.readAll(), path)
+        local contents = file.readAll()
         file.close()
-        if program ~= nil then
-            program()
-            return true
-        else
-            BassieOS.CreateMessage('Error starting ' .. path, error)
+
+        if contents ~= nil then
+            local program, error = load((args ~= nil and 'local args = textutils.unserialize([[' .. textutils.serialize(args) .. ']])\n' or '') .. contents, path)
+            if program ~= nil then
+                program()
+                return true
+            else
+                BassieOS.CreateMessage('Error starting ' .. path, error)
+            end
         end
     end
 
@@ -77,6 +81,21 @@ BassieOS.GetProgramInfo = function (path)
     end
 
     return nil
+end
+
+BassieOS.IsBassieImageFile = function (path)
+    if type(path) == 'string' and fs.exists(path) and not fs.isDir(path) then
+        local file = fs.open(path, 'r')
+        local contents = file.readAll()
+        file.close()
+
+        local bassie_image_magic = 'BIMG'
+        if contents ~= nil and string.sub(contents, 0, string.len(bassie_image_magic)) == bassie_image_magic then
+            return true
+        end
+    end
+
+    return false
 end
 
 local running = true
