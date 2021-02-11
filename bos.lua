@@ -329,8 +329,8 @@ local BeginScreen = function ()
     screen.width, screen.height = term.getSize()
     screen.bitmap = BassieOS.CreateBitmap(screen.width, screen.height)
 
+    screen.is_invalid = true
     screen.force_color_convertion = false
-    screen.is_first_time = true
     screen.write_bitmap = BassieOS.CreateBitmap(screen.width, screen.height)
 
     screen.offset = {}
@@ -345,7 +345,7 @@ local UpdateScreen = function ()
         for x = 0, screen.width - 1 do
             local position = (y * screen.width + x) * 3
             if
-                screen.is_first_time or
+                screen.is_invalid or
                 screen.bitmap.data[position] ~= screen.write_bitmap.data[position] or
                 screen.bitmap.data[position + 1] ~= screen.write_bitmap.data[position + 1] or
                 screen.bitmap.data[position + 2] ~= screen.write_bitmap.data[position + 2]
@@ -398,7 +398,7 @@ local UpdateScreen = function ()
         y = y + 1
     end
 
-    screen.is_first_time = false
+    screen.is_invalid = false
 end
 
 local StopScreen = function ()
@@ -420,6 +420,18 @@ BassieOS.GetScreenBitmap = function ()
     return screen.bitmap
 end
 
+BassieOS.IsScreenInvalid = function ()
+    return screen.is_invalid
+end
+
+BassieOS.InvalidScreen = function (is_invalid)
+    if type(is_invalid) == 'boolean' then
+        screen.is_invalid = is_invalid
+        return true
+    end
+    return false
+end
+
 BassieOS.GetForceColorConvertion = function ()
     return screen.force_color_convertion
 end
@@ -427,6 +439,7 @@ end
 BassieOS.SetForceColorConvertion = function (force_color_convertion)
     if type(force_color_convertion) == 'boolean' then
         screen.force_color_convertion = force_color_convertion
+        screen.is_invalid = true
         return true
     end
     return false
@@ -1179,7 +1192,7 @@ while running do
     local event, param1, param2, param3 = os.pullEvent()
 
     -- Handle window
-    if screen.is_first_time or event == 'timer' then
+    if BassieOS.IsScreenInvalid() or event == 'timer' then
         local screen_bitmap = BassieOS.GetScreenBitmap()
 
         -- Draw background color

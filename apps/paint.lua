@@ -37,7 +37,11 @@ local WindowMessageFunction = function (window_id, message, param1, param2, para
                     BassieOS.SetWindowTitle(window_id, 'Paint - ' .. canvas_path)
                     canvas_bitmap = BassieOS.BassieImageToBitmap(contents)
                     return
+                else
+                    BassieOS.CreateMessage('Paint', 'Can\'t open file: ' .. canvas_path)
                 end
+            else
+                BassieOS.CreateMessage('Paint', 'Can\'t open file: ' .. canvas_path)
             end
         end
 
@@ -277,7 +281,11 @@ local WindowMessageFunction = function (window_id, message, param1, param2, para
                     last_x = nil
                     last_y = nil
                     BassieOS.InvalidWindow(window_id, true)
+                else
+                    BassieOS.CreateMessage('Paint', 'Can\'t open file: ' .. canvas_path)
                 end
+            else
+                BassieOS.CreateMessage('Paint', 'Can\'t open file: ' .. canvas_path)
             end
         end
 
