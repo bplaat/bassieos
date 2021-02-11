@@ -71,7 +71,7 @@ BassieOS.GetProgramInfo = function (path)
         file.close()
 
         local program_info_magic = '-- BassieOS_Info '
-        if string.sub(first_line, 0, string.len(program_info_magic)) == program_info_magic then
+        if first_line ~= nil and string.sub(first_line, 0, string.len(program_info_magic)) == program_info_magic then
             return textutils.unserialize(string.sub(first_line, string.len(program_info_magic)))
         end
     end
@@ -152,7 +152,7 @@ BassieOS.DrawCharacter = function (bitmap, x, y, character, text_color, backgrou
     return false
 end
 
-BassieOS.LoadImage = function (image)
+BassieOS.BassieImageToBitmap = function (image)
     if type(image) == 'string' and string.sub(image, 0, 4) == 'BIMG' then
         local width = tonumber(string.sub(image, 5, 6), 16)
         local height = tonumber(string.sub(image, 7, 8), 16)
@@ -168,6 +168,28 @@ BassieOS.LoadImage = function (image)
         end
 
         return bitmap
+    end
+
+    return nil
+end
+
+BassieOS.BitmapToBassieImage = function (bitmap)
+    if type(bitmap) == 'table' then
+        local image = string.format("BIMG%02x%02x", bitmap.width, bitmap.height)
+
+        for y = 0, bitmap.height - 1 do
+            for x = 0, bitmap.width - 1 do
+                local position = (y * bitmap.width + x) * 3
+                image = image .. string.format(
+                    '%s%1x%1x',
+                    string.char(bitmap.data[position]),
+                    math.log(bitmap.data[position + 1]) / math.log(2),
+                    math.log(bitmap.data[position + 2]) / math.log(2)
+                )
+            end
+        end
+
+        return image
     end
 
     return nil
@@ -455,11 +477,12 @@ BassieOS.WindowMessage.SIZE = 4
 BassieOS.WindowMessage.FOCUS = 5
 BassieOS.WindowMessage.BLUR = 6
 BassieOS.WindowMessage.BACK = 7
-BassieOS.WindowMessage.KEY_DOWN = 8
-BassieOS.WindowMessage.KEY_UP = 9
-BassieOS.WindowMessage.MOUSE_DOWN = 10
-BassieOS.WindowMessage.MOUSE_UP = 11
-BassieOS.WindowMessage.MOUSE_DRAG = 12
+BassieOS.WindowMessage.KEY_CHAR = 8
+BassieOS.WindowMessage.KEY_DOWN = 9
+BassieOS.WindowMessage.KEY_UP = 10
+BassieOS.WindowMessage.MOUSE_DOWN = 11
+BassieOS.WindowMessage.MOUSE_UP = 12
+BassieOS.WindowMessage.MOUSE_DRAG = 13
 
 local GetWindow = function (window_id)
     for i = 1, #windows do
@@ -780,7 +803,7 @@ BassieOS.GetWindowMinHeight = function (window_id)
 end
 
 BassieOS.SetWindowMinHeight = function (window_id, min_height)
-    if type(window_id) == 'number' and type(min_width) == 'number' then
+    if type(window_id) == 'number' and type(min_height) == 'number' then
         local window = GetWindow(window_id)
         if window ~= nil then
             window.min_height = min_height
@@ -822,7 +845,7 @@ BassieOS.GetWindowMaxHeight = function (window_id)
 end
 
 BassieOS.SetWindowMaxHeight = function (window_id, max_height)
-    if type(window_id) == 'number' and type(max_width) == 'number' then
+    if type(window_id) == 'number' and type(max_height) == 'number' then
         local window = GetWindow(window_id)
         if window ~= nil then
             window.max_height = max_height
@@ -1536,6 +1559,9 @@ while running do
 
     -- Handle key events
     local focus_window_id = BassieOS.GetFocusWindowId()
+    if event == 'char' and focus_window_id ~= nil then
+        BassieOS.SendWindowMessage(focus_window_id, BassieOS.WindowMessage.KEY_CHAR, param1)
+    end
 
     if event == 'key' and focus_window_id ~= nil then
         BassieOS.SendWindowMessage(focus_window_id, BassieOS.WindowMessage.KEY_DOWN, param1, param2)

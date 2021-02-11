@@ -8,8 +8,8 @@ A simple Operating System / Window Manger for the MineCraft ComputerCraft comput
 - Resizable windows
 - Window snapping
 - Virtual text bitmap rendering
+- Paint application
 - File manager application?
-- Paint application?
 - Editor application?
 
 ## How to install?
@@ -29,3 +29,5 @@ Here are some screenshots taken with the ComputerCraft emulator running BassieOS
 ![Screenshot 2](docs/screenshot2.png)
 
 ![Screenshot 3](docs/screenshot3.png)
+
+![Screenshot 4](docs/screenshot4.png)

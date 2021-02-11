@@ -1,11 +1,11 @@
--- BassieOS_Info { type = 11, name = 'Start', description = 'The BassieOS application starter', versionNumber = 30, versionString = '3.0', author = 'Bastiaan van der Plaat' }
+-- BassieOS_Info { type = 11, name = 'Start', description = 'The BassieOS application starter', versionNumber = 30, versionString = '3.0', icon = 'BIMG0403:05:05:05:05>05R05U05N05:05:05:05:05', author = 'Bastiaan van der Plaat' }
 if BassieOS == nil then
     print('This program needs BassieOS to run')
     return
 end
 
 local apps = {}
-local standard_icon = BassieOS.LoadImage('BIMG0403 ff 0fX0e 0f ff 00 00 ff ff ff ff ff')
+local standard_icon = BassieOS.BassieImageToBitmap('BIMG0403 ff 0fX0e 0f ff 00 00 ff ff ff ff ff')
 
 local WindowMessageFunction = function (window_id, message, param1, param2, param3, param4)
     if message == BassieOS.WindowMessage.CREATE then
@@ -20,7 +20,7 @@ local WindowMessageFunction = function (window_id, message, param1, param2, para
                     local info = BassieOS.GetProgramInfo(file)
                     if info ~= nil and BassieOS.CheckProperty(info.type, BassieOS.ProgramInfoType.APP) then
                         apps[#apps + 1] = {
-                            icon = info.icon ~= nil and BassieOS.LoadImage(info.icon) or standard_icon,
+                            icon = info.icon ~= nil and BassieOS.BassieImageToBitmap(info.icon) or standard_icon,
                             name = info.name,
                             path = file
                         }
@@ -93,4 +93,5 @@ local WindowMessageFunction = function (window_id, message, param1, param2, para
     end
 end
 
-BassieOS.CreateWindow('Start any program', BassieOS.WindowStyle.STANDARD, BassieOS.CENTER_WINDOW, BassieOS.CENTER_WINDOW, 30, 11, WindowMessageFunction)
+BassieOS.CreateWindow('Start any program', BassieOS.WindowStyle.STANDARD, BassieOS.CENTER_WINDOW,
+    BassieOS.CENTER_WINDOW, 30, 11, WindowMessageFunction)

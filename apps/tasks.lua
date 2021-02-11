@@ -1,4 +1,4 @@
--- BassieOS_Info { type = 11, name = 'Tasks', description = 'A simple Task Manager for BassieOS', versionNumber = 30, versionString = '3.0', author = 'Bastiaan van der Plaat' }
+-- BassieOS_Info { type = 11, name = 'Tasks', description = 'A simple Task Manager for BassieOS', versionNumber = 30, versionString = '3.0', icon = 'BIMG0403*32*32*32*32T42A42S42K42*32*32*32*32', author = 'Bastiaan van der Plaat' }
 if BassieOS == nil then
     print('This program needs BassieOS to run')
     return
@@ -36,4 +36,5 @@ local WindowMessageFunction = function (window_id, message, param1, param2, para
     end
 end
 
-BassieOS.CreateWindow('Task Manager', BassieOS.WindowStyle.STANDARD, BassieOS.CENTER_WINDOW, BassieOS.CENTER_WINDOW, 25, 10, WindowMessageFunction)
+BassieOS.CreateWindow('Task Manager', BassieOS.WindowStyle.STANDARD, BassieOS.CENTER_WINDOW,
+    BassieOS.CENTER_WINDOW, 25, 10, WindowMessageFunction)
