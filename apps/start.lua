@@ -98,4 +98,4 @@ local WindowMessageFunction = function (window_id, message, param1, param2, para
 end
 
 BassieOS.CreateWindow('Start any program', BassieOS.WindowStyle.STANDARD, BassieOS.CENTER_WINDOW,
-    BassieOS.CENTER_WINDOW, 30, 11, WindowMessageFunction)
+    BassieOS.CENTER_WINDOW, 36, 11, WindowMessageFunction)

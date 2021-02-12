@@ -4,8 +4,6 @@ if BassieOS == nil then
     return
 end
 
-local WINDOW_MESSAGE_MENU = 1234
-
 local path = nil
 local paths = { '/' }
 local folders = nil
@@ -58,6 +56,15 @@ local WindowMessageFunction = function (window_id, message, param1, param2, para
         LoadFolder(window_id)
     end
 
+    -- Handle menu messages
+    if BassieOS.HandleWindowMenuMessage(
+        window_id, paths,
+        message, param1, param2, param3, param4
+    ) then
+        return
+    end
+
+    -- Handle back button
     if message == BassieOS.WindowMessage.BACK then
         -- Handle back / up button
         if #paths > 1 then
@@ -86,13 +93,7 @@ local WindowMessageFunction = function (window_id, message, param1, param2, para
         BassieOS.FillRect(bitmap, 0, 0, width, height, ' ', text_color, background_color)
 
         -- Draw menu
-        BassieOS.FillRect(bitmap, 0, 0, width, 1, ' ', text_color, background_color)
-        local local_x = 0
-        for i = 1, #paths do
-            local menu_item = paths[i]
-            BassieOS.DrawText(bitmap, local_x, 0, menu_item, text_color, background_color)
-            local_x = local_x + string.len(menu_item) + 1
-        end
+        BassieOS.DrawWindowMenu(window_id, paths)
 
         -- Draw folders list
         local offset_y = 1
@@ -114,21 +115,6 @@ local WindowMessageFunction = function (window_id, message, param1, param2, para
         local button = param1
         local x = param2
         local y = param3
-
-        -- Handle menu
-        local local_x = 0
-        for i = 1, #paths do
-            local menu_item = paths[i]
-            if
-                x >= local_x and
-                x < local_x + string.len(menu_item) and
-                y == 0
-            then
-                BassieOS.SendWindowMessage(window_id, WINDOW_MESSAGE_MENU, i)
-                return
-            end
-            local_x = local_x + string.len(menu_item) + 1
-        end
 
         -- Handle folders list
         local offset_y = 1
@@ -163,7 +149,7 @@ local WindowMessageFunction = function (window_id, message, param1, param2, para
         end
     end
 
-    if message == WINDOW_MESSAGE_MENU then
+    if message == BassieOS.WindowMessage.MENU then
         -- Handle paths menu
         local menu_item = param1
 

@@ -4,8 +4,6 @@ if BassieOS == nil then
     return
 end
 
-local WINDOW_MESSAGE_MENU = 1234
-
 local menu = { 'New', 'Open', 'Save', 'Exit' }
 
 local canvas_path = '/image.bimg'
@@ -22,7 +20,7 @@ canvas_resize.is_south = false
 local WindowMessageFunction = function (window_id, message, param1, param2, param3, param4)
     if message == BassieOS.WindowMessage.CREATE then
         BassieOS.SetWindowMinWidth(window_id, 16 + 5)
-        BassieOS.SetWindowMinHeight(window_id, 4)
+        BassieOS.SetWindowMinHeight(window_id, 5)
 
         local width = BassieOS.GetWindowWidth(window_id)
         local height = BassieOS.GetWindowHeight(window_id)
@@ -48,6 +46,15 @@ local WindowMessageFunction = function (window_id, message, param1, param2, para
         canvas_bitmap = BassieOS.CreateBitmap(width - 1, height - 4)
     end
 
+    -- Handle menu messages
+    if BassieOS.HandleWindowMenuMessage(
+        window_id, menu,
+        message, param1, param2, param3, param4
+    ) then
+        return
+    end
+
+    -- Handle back button
     if message == BassieOS.WindowMessage.BACK then
         BassieOS.CloseWindow(window_id)
     end
@@ -57,30 +64,26 @@ local WindowMessageFunction = function (window_id, message, param1, param2, para
         local width = param2
         local height = param3
 
-        local background_color = BassieOS.GetTheme() == BassieOS.Theme.LIGHT and colors.lightGray or colors.gray
+        local background_color = BassieOS.GetTheme() == BassieOS.Theme.LIGHT and colors.white or colors.gray
+        local text_background_color = colors.lightGray
+        local tools_background_color = BassieOS.GetTheme() == BassieOS.Theme.LIGHT and colors.lightGray or colors.gray
         local text_color = BassieOS.GetTheme() == BassieOS.Theme.LIGHT and colors.black or colors.white
 
         -- Draw background color
-        BassieOS.FillRect(bitmap, 0, 0, width, height, ' ', text_color, background_color)
+        BassieOS.FillRect(bitmap, 0, 0, width, height, 127, text_background_color, background_color)
 
         -- Draw menu
-        BassieOS.FillRect(bitmap, 0, 0, width, 1, ' ', text_color, background_color)
-        local local_x = 0
-        for i = 1, #menu do
-            local menu_item = menu[i]
-            BassieOS.DrawText(bitmap, local_x, 0, menu_item, text_color, background_color)
-            local_x = local_x + string.len(menu_item) + 1
-        end
+        BassieOS.DrawWindowMenu(window_id, menu)
 
-        -- Draw current bitmap
+        -- Draw canvas bitmap
         BassieOS.DrawBitmap(bitmap, 0, 1, canvas_bitmap)
 
         -- Draw text color picker
-        BassieOS.FillRect(bitmap, 0, height - 2, width, 1, ' ', text_color, background_color)
+        BassieOS.FillRect(bitmap, 0, height - 2, width, 1, 127, text_background_color, background_color)
         local color_width = math.floor((width - 5) / 16)
 
         local offset_x = math.floor((width - 5 - color_width * 16) / 2)
-        BassieOS.DrawText(bitmap, offset_x, height - 2, 'Text:', text_color, background_color)
+        BassieOS.DrawText(bitmap, offset_x, height - 2, 'Text:', text_color, tools_background_color)
         offset_x = offset_x + 5
 
         for i = 0, 15 do
@@ -88,10 +91,10 @@ local WindowMessageFunction = function (window_id, message, param1, param2, para
         end
 
         -- Draw background color picker
-        BassieOS.FillRect(bitmap, 0, height - 1, width, 1, ' ', text_color, background_color)
+        BassieOS.FillRect(bitmap, 0, height - 1, width, 1, 127, text_background_color, background_color)
 
         offset_x = math.floor((width - 5 - color_width * 16) / 2)
-        BassieOS.DrawText(bitmap, offset_x, height - 1, 'Back:', text_color, background_color)
+        BassieOS.DrawText(bitmap, offset_x, height - 1, 'Back:', text_color, tools_background_color)
         offset_x = offset_x + 5
 
         for i = 0, 15 do
@@ -203,21 +206,6 @@ local WindowMessageFunction = function (window_id, message, param1, param2, para
             local width = BassieOS.GetWindowWidth(window_id)
             local height = BassieOS.GetWindowHeight(window_id)
 
-            -- Handle menu
-            local local_x = 0
-            for i = 1, #menu do
-                local menu_item = menu[i]
-                if
-                    x >= local_x and
-                    x < local_x + string.len(menu_item) and
-                    y == 0
-                then
-                    BassieOS.SendWindowMessage(window_id, WINDOW_MESSAGE_MENU, i)
-                    return
-                end
-                local_x = local_x + string.len(menu_item) + 1
-            end
-
             -- Handle text color picker
             local color_width = math.floor((width - 5) / 16)
             local offset_x = math.floor((width - 5 - color_width * 16) / 2) + 5
@@ -258,11 +246,12 @@ local WindowMessageFunction = function (window_id, message, param1, param2, para
         end
     end
 
-    if message == WINDOW_MESSAGE_MENU then
+    if message == BassieOS.WindowMessage.MENU then
         local menu_item = param1
 
         -- New button
         if menu_item == 1 then
+            BassieOS.SetWindowTitle(window_id, 'Paint')
             canvas_bitmap = BassieOS.CreateBitmap(canvas_bitmap.width, canvas_bitmap.height)
             last_x = nil
             last_y = nil

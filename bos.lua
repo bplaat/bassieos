@@ -215,9 +215,13 @@ BassieOS.BitmapToBassieImage = function (bitmap)
 end
 
 BassieOS.StrokeRect = function (bitmap, x, y, width, height, character, text_color, background_color)
+    if type(character) == 'string' then
+        character = string.byte(character)
+    end
+
     if
         type(bitmap) == 'table' and type(x) == 'number' and type(y) == 'number' and type(width) == 'number' and
-        type(height) == 'number' and type(character) == 'string' and
+        type(height) == 'number' and type(character) == 'number' and
         type(text_color) == 'number' and type(background_color) == 'number'
     then
         for other_y = 0, height - 1 do
@@ -228,7 +232,7 @@ BassieOS.StrokeRect = function (bitmap, x, y, width, height, character, text_col
                     other_x == width - 1 or
                     other_y == height - 1
                 then
-                    BassieOS.DrawCharacter(bitmap, x + other_x, y + other_y, string.byte(character), text_color, background_color)
+                    BassieOS.DrawCharacter(bitmap, x + other_x, y + other_y, character, text_color, background_color)
                 end
             end
         end
@@ -240,14 +244,18 @@ BassieOS.StrokeRect = function (bitmap, x, y, width, height, character, text_col
 end
 
 BassieOS.FillRect = function (bitmap, x, y, width, height, character, text_color, background_color)
+    if type(character) == 'string' then
+        character = string.byte(character)
+    end
+
     if
         type(bitmap) == 'table' and type(x) == 'number' and type(y) == 'number' and type(width) == 'number' and
-        type(height) == 'number' and type(character) == 'string' and
+        type(height) == 'number' and type(character) == 'number' and
         type(text_color) == 'number' and type(background_color) == 'number'
     then
         for other_y = 0, height - 1 do
             for other_x = 0, width - 1 do
-                BassieOS.DrawCharacter(bitmap, x + other_x, y + other_y, string.byte(character), text_color, background_color)
+                BassieOS.DrawCharacter(bitmap, x + other_x, y + other_y, character, text_color, background_color)
             end
         end
 
@@ -515,6 +523,7 @@ BassieOS.WindowMessage.KEY_UP = 10
 BassieOS.WindowMessage.MOUSE_DOWN = 11
 BassieOS.WindowMessage.MOUSE_UP = 12
 BassieOS.WindowMessage.MOUSE_DRAG = 13
+BassieOS.WindowMessage.MENU = 14
 
 local GetWindow = function (window_id)
     for i = 1, #windows do
@@ -938,11 +947,13 @@ BassieOS.FocusWindow = function (window_id)
                 if focus_window_id ~= nil then
                     local focus_window = GetWindow(focus_window_id)
                     focus_window.is_focused = false
+                    focus_window.is_invalid = true
                     BassieOS.SendWindowMessage(focus_window_id, BassieOS.WindowMessage.BLUR)
                 end
 
                 -- Give focus to window
                 window.is_focused = true
+                window.is_invalid = true
                 BassieOS.SendWindowMessage(window_id, BassieOS.WindowMessage.FOCUS)
 
                 -- Update window order
@@ -1143,6 +1154,55 @@ BassieOS.CreateMessage = function (title, text)
     end
 end
 
+BassieOS.DrawWindowMenu = function (window_id, menu)
+    if type(window_id) == 'number' and type(menu) == 'table' then
+        local bitmap = BassieOS.GetWindowBitmap(window_id)
+        local width = BassieOS.GetWindowWidth(window_id)
+
+        local menu_background_color = BassieOS.GetTheme() == BassieOS.Theme.LIGHT and colors.lightGray or colors.black
+        local text_color
+        if BassieOS.IsWindowFocused(window_id) then
+            text_color = BassieOS.GetTheme() == BassieOS.Theme.LIGHT and colors.black or colors.white
+        else
+            text_color = BassieOS.GetTheme() == BassieOS.Theme.LIGHT and colors.gray or colors.lightGray
+        end
+
+        BassieOS.FillRect(bitmap, 0, 0, width, 1, ' ', text_color, menu_background_color)
+        local local_x = 0
+        for i = 1, #menu do
+            local menu_item = menu[i]
+            BassieOS.DrawText(bitmap, local_x, 0, menu_item, text_color, menu_background_color)
+            local_x = local_x + string.len(menu_item) + 1
+        end
+    end
+end
+
+BassieOS.HandleWindowMenuMessage = function (window_id, menu, message, param1, param2, param3, param4)
+    if type(window_id) == 'number' and type(menu) == 'table' and type(message) == 'number' then
+        if message == BassieOS.WindowMessage.MOUSE_UP then
+            local button = param1
+            local x = param2
+            local y = param3
+
+            local local_x = 0
+            for i = 1, #menu do
+                local menu_item = menu[i]
+                if
+                    x >= local_x and
+                    x < local_x + string.len(menu_item) and
+                    y == 0
+                then
+                    BassieOS.SendWindowMessage(window_id, BassieOS.WindowMessage.MENU, i)
+                    return true
+                end
+                local_x = local_x + string.len(menu_item) + 1
+            end
+        end
+    end
+
+    return false
+end
+
 -- Theme functions
 BassieOS.Theme = {}
 BassieOS.Theme.LIGHT = 0
@@ -1227,7 +1287,7 @@ while running do
 
                     BassieOS.StrokeRect(screen_bitmap, window_x - 1, window_y - 1, window_width + 2, window_height + 2, ' ', text_color, border_color)
 
-                    BassieOS.DrawText(screen_bitmap, window_x, window_y - 1, '<', icon_color, colors.blue)
+                    BassieOS.DrawCharacter(screen_bitmap, window_x, window_y - 1, '<', icon_color, colors.blue)
 
                     local window_title_width = window_width - 2 - (BassieOS.HasWindowStyle(window_id, BassieOS.WindowStyle.RESIZABLE) and 4 or 3)
                     if window_title_width >= 2 then
@@ -1236,14 +1296,14 @@ while running do
                     end
 
                     if BassieOS.HasWindowStyle(window_id, BassieOS.WindowStyle.RESIZABLE) then
-                        BassieOS.DrawText(screen_bitmap, window_x + window_width - 3, window_y - 1, '_', icon_color, colors.orange)
+                        BassieOS.DrawCharacter(screen_bitmap, window_x + window_width - 3, window_y - 1, '_', icon_color, colors.orange)
 
-                        BassieOS.DrawText(screen_bitmap, window_x + window_width - 2, window_y - 1, BassieOS.IsWindowMaximized(window_id) and 'o' or 'O', icon_color, colors.green)
+                        BassieOS.DrawCharacter(screen_bitmap, window_x + window_width - 2, window_y - 1, BassieOS.IsWindowMaximized(window_id) and 25 or 24, icon_color, colors.green)
                     else
-                        BassieOS.DrawText(screen_bitmap, window_x + window_width - 2, window_y - 1, '_', icon_color, colors.orange)
+                        BassieOS.DrawCharacter(screen_bitmap, window_x + window_width - 2, window_y - 1, '_', icon_color, colors.orange)
                     end
 
-                    BassieOS.DrawText(screen_bitmap, window_x + window_width - 1, window_y - 1, 'X', icon_color, colors.red)
+                    BassieOS.DrawCharacter(screen_bitmap, window_x + window_width - 1, window_y - 1, 'X', icon_color, colors.red)
                 end
 
                 -- Draw window bitmap
