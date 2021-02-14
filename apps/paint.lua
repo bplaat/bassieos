@@ -25,7 +25,10 @@ local WindowMessageFunction = function (window_id, message, param1, param2, para
         local width = BassieOS.GetWindowWidth(window_id)
         local height = BassieOS.GetWindowHeight(window_id)
 
-        if args ~= nil and args[1] ~= nil and type(args[1]) == 'string' and fs.exists(args[1]) and not fs.isDir(args[1]) then
+        if
+            args ~= nil and args[1] ~= nil and type(args[1]) == 'string' and
+            fs.exists(args[1]) and not fs.isDir(args[1])
+        then
             local file = fs.open(args[1], 'r')
             if file ~= nil then
                 local contents = file.readAll()

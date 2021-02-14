@@ -6,8 +6,31 @@ if BassieOS == nil then
 end
 
 local menu = { 'New', 'Open', 'Save', 'Exit' }
+local lines = {}
 
 local WindowMessageFunction = function (window_id, message, param1, param2, param3, param4)
+    if event == WINDOW_EVENT_CREATE then
+        -- Read text file lines
+        if
+            args ~= nil and args[1] ~= nil and type(args[1]) == 'string' and
+            fs.exists(args[1]) and not fs.isDir(args[1])
+        then
+            local file = fs.open(args[1], 'r')
+            if file ~= nil then
+                BassieOS.SetWindowTitle(window_id, 'Editor - ' .. args[1])
+
+                local line = file.readLine()
+                while line ~= nil do
+                    lines[#lines + 1] = line
+                    line = file.readLine()
+                end
+                file.close()
+            else
+                BassieOS.CreateMessage('Edit', 'Can\'t open file: ' .. canvas_path)
+            end
+        end
+    end
+
     -- Handle menu messages
     if BassieOS.HandleWindowMenuMessage(
         window_id, menu,
@@ -34,6 +57,12 @@ local WindowMessageFunction = function (window_id, message, param1, param2, para
 
         -- Draw menu
         BassieOS.DrawWindowMenu(window_id, menu)
+
+        -- Draw text file lines
+        for i = 1, #lines do
+            local line = lines[i]
+            BassieOS.DrawText(bitmap, 0, i, line, text_color, background_color)
+        end
     end
 
     if message == BassieOS.WindowMessage.MENU then
