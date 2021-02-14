@@ -8,9 +8,10 @@ A simple Operating System / Window Manger for the MineCraft ComputerCraft comput
 - Resizable windows
 - Window snapping
 - Virtual text bitmap rendering
+- File manager application
+- Editor application
 - Paint application
-- File manager application?
-- Editor application?
+- Scroll bars?
 
 ## How to install?
 To run this in Minecraft install the [ComputerCraft mod](https://www.computercraft.info/)
